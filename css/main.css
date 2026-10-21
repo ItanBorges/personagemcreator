@@ -1,0 +1,230 @@
+/* ==========================================================================
+   PERSONAGEM CREATOR - D&D 5e & 5.5 (2024)
+   Design System & Temas (Grimório Escuro / Pergaminho Claro)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Outfit:wght@300;400;500;600;700&family=MedievalSharp&display=swap');
+
+:root {
+  /* TEMA ESCURO (GRIMÓRIO ARCANO) - PADRÃO */
+  --bg-app: #0b0d13;
+  --bg-surface: #141724;
+  --bg-surface-elevated: #1c2133;
+  --bg-surface-hover: #252b42;
+  --border-color: #283049;
+  --border-color-highlight: #46537d;
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  
+  --primary: #eab308; /* Ouro Arcano */
+  --primary-hover: #facc15;
+  --primary-bg: rgba(234, 179, 8, 0.12);
+  --primary-border: rgba(234, 179, 8, 0.35);
+
+  --accent-rune: #38bdf8; /* Azul Rúnico */
+  --accent-rune-bg: rgba(56, 189, 248, 0.12);
+  --accent-crimson: #ef4444; /* Rubro de Combate */
+  --accent-emerald: #10b981; /* Esmeralda de Sucesso */
+  --accent-emerald-bg: rgba(16, 185, 129, 0.15);
+  --accent-amber: #f59e0b; /* Alerta */
+  --accent-amber-bg: rgba(245, 158, 11, 0.15);
+
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.55);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --font-title: 'Cinzel', serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-rpg: 'MedievalSharp', cursive;
+}
+
+/* TEMA CLARO (PERGAMINHO ÉPICO) */
+[data-theme="light"] {
+  --bg-app: #f4eee1;
+  --bg-surface: #fffdf9;
+  --bg-surface-elevated: #f8f4ea;
+  --bg-surface-hover: #efe7d6;
+  --border-color: #d6c8a7;
+  --border-color-highlight: #bfae85;
+  
+  --text-main: #241c15;
+  --text-muted: #6b5d4f;
+  --text-dim: #948574;
+  
+  --primary: #991b1b; /* Rubro Nobre */
+  --primary-hover: #b91c1c;
+  --primary-bg: rgba(153, 27, 27, 0.08);
+  --primary-border: rgba(153, 27, 27, 0.3);
+
+  --accent-rune: #0284c7;
+  --accent-rune-bg: rgba(2, 132, 199, 0.1);
+  --accent-crimson: #b91c1c;
+  --accent-emerald: #047857;
+  --accent-emerald-bg: rgba(4, 120, 87, 0.12);
+  --accent-amber: #b45309;
+  --accent-amber-bg: rgba(180, 83, 9, 0.12);
+
+  --shadow-sm: 0 2px 5px rgba(60, 40, 20, 0.08);
+  --shadow-md: 0 4px 12px rgba(60, 40, 20, 0.12);
+  --shadow-lg: 0 8px 24px rgba(60, 40, 20, 0.16);
+}
+
+/* Reset Geral */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Layout Principal */
+.app-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 3rem 1.5rem;
+}
+
+/* Cabeçalho da Aplicação */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 1.25rem 1.75rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.75rem;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-icon {
+  font-size: 2.25rem;
+  line-height: 1;
+  color: var(--primary);
+  filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.4));
+}
+
+.brand-text h1 {
+  font-family: var(--font-title);
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-badge {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: var(--primary-bg);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+  text-transform: uppercase;
+}
+
+.brand-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.brand-sub a {
+  color: var(--accent-rune);
+  text-decoration: none;
+}
+.brand-sub a:hover {
+  text-decoration: underline;
+}
+
+/* Ações do Topo */
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Barra de Navegação entre Abas */
+.view-tabs-nav {
+  display: flex;
+  background: var(--bg-surface-elevated);
+  padding: 0.35rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  gap: 0.25rem;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-surface-hover);
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.35);
+}
+
+[data-theme="light"] .tab-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Containers de Conteúdo das Abas */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

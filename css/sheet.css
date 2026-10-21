@@ -1,0 +1,475 @@
+/* ==========================================================================
+   FICHA OFICIAL DE D&D 5E EM PORTUGUÊS (PT-BR) E REGRAS DE IMPRESSÃO
+   ========================================================================== */
+
+.sheet-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+  margin-bottom: 2rem;
+}
+
+/* Cabeçalho Superior da Ficha 5e */
+.sheet-header-grid {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.sheet-name-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--text-main);
+}
+
+.sheet-char-name {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.sheet-label-sub {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.sheet-header-fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem 1.25rem;
+  background: var(--bg-surface-elevated);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.header-field-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-field-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color-highlight);
+  padding-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Layout de 3 Colunas Padrão da 5e */
+.sheet-main-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 1.4fr;
+  gap: 1.5rem;
+}
+
+/* COLUNA 1: ATRIBUTOS, SALVAGUARDAS, PERÍCIAS */
+.sheet-col-1 {
+  display: flex;
+  gap: 1rem;
+}
+
+.sheet-stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sheet-stat-pill {
+  width: 80px;
+  background: var(--bg-surface-elevated);
+  border: 2px solid var(--border-color-highlight);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.25rem 0.25rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.stat-pill-name {
+  font-family: var(--font-title);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.stat-pill-mod {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+  margin: 0.2rem 0;
+}
+
+.stat-pill-base {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.sheet-skills-saves-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Caixa de Inspiração e Proficiência */
+.sheet-box-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.85rem;
+}
+
+.box-inline-val {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: center;
+  color: var(--primary);
+}
+
+.box-inline-lbl {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* Lista de Salvaguardas e Perícias */
+.sheet-bordered-panel {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+}
+
+.panel-header-title {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.check-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .check-item-row {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.check-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prof-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color-highlight);
+  background: transparent;
+}
+
+.prof-dot.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 5px rgba(234, 179, 8, 0.5);
+}
+
+.prof-dot.expert {
+  background: var(--accent-rune);
+  border-color: var(--accent-rune);
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+}
+
+.check-item-name {
+  color: var(--text-main);
+}
+
+.check-item-stat {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.check-item-val {
+  font-weight: 700;
+  color: var(--text-main);
+  min-width: 24px;
+  text-align: right;
+}
+
+/* COLUNA 2: COMBATE, PV, ATAQUES */
+.sheet-col-2 {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sheet-combat-top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.combat-stat-badge {
+  background: var(--bg-surface-elevated);
+  border: 2px solid var(--border-color-highlight);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.combat-stat-val {
+  font-family: var(--font-title);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.combat-stat-lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+/* Pontos de Vida */
+.hp-panel {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.hp-main-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.hp-val-large {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent-emerald);
+}
+
+/* Tabela de Ataques */
+.attacks-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.attacks-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.attacks-table td {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+/* COLUNA 3: CARACTERÍSTICAS & HABILIDADES */
+.sheet-col-3 {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.feature-item-card {
+  background: var(--bg-surface-hover);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.65rem 0.85rem;
+}
+
+.feature-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  gap: 0.5rem;
+}
+
+.feature-name {
+  font-family: var(--font-title);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.feature-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* SEÇÃO DE MAGIAS DA FICHA */
+.sheet-spells-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border-color);
+}
+
+.spells-header-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  background: var(--bg-surface-elevated);
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+}
+
+.spells-circle-group {
+  margin-bottom: 1.5rem;
+}
+
+.circle-group-title {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.circle-slots-tracker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.circle-slots-tracker input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+
+/* REGRAS DE IMPRESSÃO (@MEDIA PRINT) */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .app-header,
+  .view-tabs-nav,
+  .print-hide {
+    display: none !important;
+  }
+
+  .sheet-container {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .sheet-header-grid {
+    grid-template-columns: 1fr 2fr !important;
+  }
+
+  .sheet-stat-pill,
+  .combat-stat-badge,
+  .sheet-bordered-panel,
+  .sheet-header-fields,
+  .hp-panel {
+    background: #fff !important;
+    border-color: #333 !important;
+    color: #000 !important;
+  }
+
+  .stat-pill-mod,
+  .stat-box-val,
+  .combat-stat-val,
+  .sheet-char-name,
+  .panel-header-title {
+    color: #000 !important;
+  }
+
+  .prof-dot.active {
+    background: #000 !important;
+    border-color: #000 !important;
+  }
+
+  .badge-source, .badge-origin {
+    border: 1px solid #333 !important;
+    color: #000 !important;
+    background: #eee !important;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+}
