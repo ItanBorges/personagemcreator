@@ -7,6 +7,9 @@ import { getRaceById } from './data/races.js';
 import { getClassById } from './data/classes.js';
 import { getBackgroundById } from './data/backgrounds.js';
 import { getFeatById } from './data/feats.js';
+import { getSpellById } from './data/spells.js';
+import { getManeuverById, getFightingStyleById, getMetamagicById, getInvocationById, getTotemSpiritById, getHunterPreyById } from './data/optionsCatalog.js';
+import { findItemByNameOrId, calculateItemResaleValue, getArmorById } from './data/equipment.js';
 
 const SOURCES_2014 = ['phb_2014', 'tcoe', 'xgte', 'bpg', 'mpmm', 'ftd', 'scag'];
 const SOURCES_2024 = ['phb_2024'];
@@ -80,11 +83,37 @@ const DEFAULT_STATE = {
   // Magias Escolhidas: [{ spellId, origin, sourceId }]
   knownSpells: [],
 
+  // Escolhas dinâmicas por categoria (classes, subclasses, raça, antecedente, talentos)
+  featureChoices: {
+    race: {
+      cantripId: null,
+      skills: [],
+      originFeatId: null,
+      originFeatChoices: {}
+    },
+    background: {
+      originFeatChoices: {}
+    },
+    classes: {},
+    subclasses: {},
+    feats: {}
+  },
+
+  // Regras Específicas do Patrulheiro ('tcoe' ou 'phb_2014')
+  rangerOption: 'tcoe',
+
+  // Moedas e Recursos Financeiros
+  currency: {
+    gp: 15,
+    sp: 0,
+    cp: 0
+  },
+
   // Equipamentos e Combate
   armorId: 'cota_malha_pesada',
   hasShield: true,
   equippedWeapons: ['espada_longa'],
-  inventory: ['Pacote de Masmorra', '20 po', 'Adaga'],
+  inventory: ['Pacote de Masmorra', 'Adaga', 'Cota de Malha', 'Espada Longa', 'Escudo'],
 
   notes: ''
 };
@@ -128,7 +157,17 @@ class StateStore {
           backgroundId = edition === '2024' ? 'soldado_2024' : 'soldado_2014';
         }
 
-        return { ...DEFAULT_STATE, ...parsed, edition, activeSources, raceId, backgroundId };
+        const featureChoices = {
+          race: { cantripId: null, skills: [], originFeatId: null, originFeatChoices: {}, ...(parsed.featureChoices?.race || {}) },
+          background: { originFeatChoices: {}, ...(parsed.featureChoices?.background || {}) },
+          classes: { ...(parsed.featureChoices?.classes || {}) },
+          subclasses: { ...(parsed.featureChoices?.subclasses || {}) },
+          feats: { ...(parsed.featureChoices?.feats || {}) }
+        };
+
+        const rangerOption = parsed.rangerOption || 'tcoe';
+        const currency = { gp: 15, sp: 0, cp: 0, ...(parsed.currency || {}) };
+        return { ...DEFAULT_STATE, ...parsed, featureChoices, rangerOption, currency, edition, activeSources, raceId, backgroundId };
       }
     } catch (e) {
       console.warn('Erro ao carregar estado do localStorage', e);
@@ -154,6 +193,21 @@ class StateStore {
     if (options.notify !== false) {
       this.notify();
     }
+  }
+
+  setFeatureChoice(category, subKey, data) {
+    const choices = { ...(this.state.featureChoices || {}) };
+    if (!choices[category]) choices[category] = {};
+    if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
+      choices[category][subKey] = { ...(choices[category][subKey] || {}), ...data };
+    } else {
+      choices[category][subKey] = data;
+    }
+    this.setState({ featureChoices: choices });
+  }
+
+  getFeatureChoice(category, subKey) {
+    return this.state.featureChoices?.[category]?.[subKey] || null;
   }
 
   subscribe(listener) {
@@ -269,6 +323,16 @@ class StateStore {
       }
     });
 
+    // Bônus de atributos concedidos por talentos com escolha (ex: Resiliente, Especialista em Perícia)
+    s.levels.forEach((lvl, idx) => {
+      if (lvl.asiType === 'feat' && lvl.featId) {
+        const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+        if (featChoice?.stat && finalStats[featChoice.stat] !== undefined) {
+          finalStats[featChoice.stat] += 1;
+        }
+      }
+    });
+
     // Modificadores
     const modifiers = {
       str: getModifier(finalStats.str),
@@ -293,8 +357,21 @@ class StateStore {
       isDraconicSorcerer: subclasses['feiticeiro'] === 'draconico'
     });
 
-    // CA
+    // CA e Estilo de Luta Defesa
     const activeClassIds = Object.keys(classLevels);
+    let hasDefenseStyle = false;
+    for (const cId of activeClassIds) {
+      if (s.featureChoices?.classes?.[cId]?.fightingStyle === 'defesa') {
+        hasDefenseStyle = true;
+      }
+    }
+    s.levels.forEach((lvl, idx) => {
+      const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+      if (featChoice?.fightingStyle === 'defesa') {
+        hasDefenseStyle = true;
+      }
+    });
+
     const ac = calculateArmorClass({
       armorId: s.armorId,
       hasShield: s.hasShield,
@@ -302,7 +379,7 @@ class StateStore {
       conMod: modifiers.con,
       wisMod: modifiers.wis,
       activeClasses: activeClassIds,
-      hasDefenseStyle: false
+      hasDefenseStyle
     });
 
     // Deslocamento (Speed)
@@ -335,17 +412,173 @@ class StateStore {
       });
     }
 
+    // Perícias extras de Raça (Humano 2024 Versátil, Meio-Elfo)
+    if (Array.isArray(s.featureChoices?.race?.skills)) {
+      s.featureChoices.race.skills.forEach(sk => allProficientSkills.add(sk));
+    }
+
+    // Perícias extras de Antecedente (se talento Hábil)
+    if (Array.isArray(s.featureChoices?.background?.originFeatChoices?.skills)) {
+      s.featureChoices.background.originFeatChoices.skills.forEach(sk => allProficientSkills.add(sk));
+    }
+
+    // Perícias extras de Talentos de Nível (Hábil, Especialista em Perícia)
+    s.levels.forEach((lvl, idx) => {
+      const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+      if (Array.isArray(featChoice?.skills)) {
+        featChoice.skills.forEach(sk => allProficientSkills.add(sk));
+      }
+      if (featChoice?.skill) {
+        allProficientSkills.add(featChoice.skill);
+      }
+    });
+
+    // Perícias extras de Subclasses (ex: Colégio do Conhecimento)
+    if (Array.isArray(s.featureChoices?.subclasses?.colegio_conhecimento?.skills)) {
+      s.featureChoices.subclasses.colegio_conhecimento.skills.forEach(sk => allProficientSkills.add(sk));
+    }
+
+    // Especializações (Expertise) consolidadas
+    const allExpertSkills = new Set(s.expertSkills);
+    s.levels.forEach((lvl, idx) => {
+      const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+      if (featChoice?.expertise) {
+        allExpertSkills.add(featChoice.expertise);
+      }
+    });
+
     // Percepção Passiva
     const isPerceptionProf = allProficientSkills.has('percepcao');
-    const isPerceptionExpert = s.expertSkills.includes('percepcao');
+    const isPerceptionExpert = allExpertSkills.has('percepcao');
     let passivePerception = 10 + modifiers.wis;
     if (isPerceptionExpert) passivePerception += profBonus * 2;
     else if (isPerceptionProf) passivePerception += profBonus;
 
-    // Salvaguardas Proficientes (da 1ª classe)
+    // Salvaguardas Proficientes (da 1ª classe + Talento Resiliente)
     const firstClassId = s.levels[0]?.classId || 'guerreiro';
     const firstClass = getClassById(firstClassId);
-    const baseSaves = firstClass ? firstClass.savingThrows : ['FOR', 'CON'];
+    const baseSaves = firstClass ? [...firstClass.savingThrows] : ['FOR', 'CON'];
+
+    s.levels.forEach((lvl, idx) => {
+      if (lvl.asiType === 'feat' && lvl.featId === 'resiliente') {
+        const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.['resiliente'];
+        if (featChoice?.stat) {
+          const map = { str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' };
+          const saveCode = map[featChoice.stat];
+          if (saveCode && !baseSaves.includes(saveCode)) {
+            baseSaves.push(saveCode);
+          }
+        }
+      }
+    });
+
+    // Magias Concedidas por Talentos, Raças e Subclasses
+    const grantedSpells = [];
+
+    // 1. Raça (ex: Alto Elfo)
+    if (s.featureChoices?.race?.cantripId) {
+      const sp = getSpellById(s.featureChoices.race.cantripId);
+      if (sp) grantedSpells.push({ spell: sp, origin: `Raça: ${race?.name || 'Alto Elfo'}`, category: 'Truque', sourceKey: 'race' });
+    }
+
+    // 2. Antecedente (ex: Acólito -> Iniciado em Magia Clérigo)
+    const bgChoices = s.featureChoices?.background?.originFeatChoices;
+    if (bgChoices) {
+      if (Array.isArray(bgChoices.cantrips)) {
+        bgChoices.cantrips.forEach(cId => {
+          const sp = getSpellById(cId);
+          if (sp) grantedSpells.push({ spell: sp, origin: `Antecedente: ${bg?.name || 'Origem'}`, category: 'Truque', sourceKey: 'background' });
+        });
+      }
+      if (bgChoices.spell1) {
+        const sp = getSpellById(bgChoices.spell1);
+        if (sp) grantedSpells.push({ spell: sp, origin: `Antecedente: ${bg?.name || 'Origem'}`, category: '1º Círculo', sourceKey: 'background' });
+      }
+    }
+
+    // 3. Talento Racial do Humano 2024 / Variante 2014
+    const raceFeatChoices = s.featureChoices?.race?.originFeatChoices;
+    if (raceFeatChoices) {
+      if (Array.isArray(raceFeatChoices.cantrips)) {
+        raceFeatChoices.cantrips.forEach(cId => {
+          const sp = getSpellById(cId);
+          if (sp) grantedSpells.push({ spell: sp, origin: `Talento Racial (${race?.name})`, category: 'Truque', sourceKey: 'race_feat' });
+        });
+      }
+      if (raceFeatChoices.spell1) {
+        const sp = getSpellById(raceFeatChoices.spell1);
+        if (sp) grantedSpells.push({ spell: sp, origin: `Talento Racial (${race?.name})`, category: '1º Círculo', sourceKey: 'race_feat' });
+      }
+    }
+
+    // 4. Talentos de Nível (Iniciado em Magia)
+    s.levels.forEach((lvl, idx) => {
+      const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+      if (featChoice) {
+        const featObj = getFeatById(lvl.featId);
+        if (Array.isArray(featChoice.cantrips)) {
+          featChoice.cantrips.forEach(cId => {
+            const sp = getSpellById(cId);
+            if (sp) grantedSpells.push({ spell: sp, origin: `Talento: ${featObj?.name || 'Iniciado em Magia'}`, category: 'Truque', sourceKey: `feat_${idx}` });
+          });
+        }
+        if (featChoice.spell1) {
+          const sp = getSpellById(featChoice.spell1);
+          if (sp) grantedSpells.push({ spell: sp, origin: `Talento: ${featObj?.name || 'Iniciado em Magia'}`, category: '1º Círculo', sourceKey: `feat_${idx}` });
+        }
+      }
+    });
+
+    // Resumo de escolhas ativas formatadas para a ficha e interface
+    const activeManeuvers = (s.featureChoices?.subclasses?.mestre_batalha?.maneuvers || [])
+      .map(id => getManeuverById(id))
+      .filter(Boolean);
+
+    const activeFightingStyles = [];
+    Object.values(s.featureChoices?.classes || {}).forEach(cData => {
+      if (cData.fightingStyle) {
+        const fs = getFightingStyleById(cData.fightingStyle);
+        if (fs && !activeFightingStyles.some(x => x.id === fs.id)) activeFightingStyles.push(fs);
+      }
+    });
+    s.levels.forEach((lvl, idx) => {
+      const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+      if (featChoice?.fightingStyle) {
+        const fs = getFightingStyleById(featChoice.fightingStyle);
+        if (fs && !activeFightingStyles.some(x => x.id === fs.id)) activeFightingStyles.push(fs);
+      }
+    });
+
+    const activeMetamagic = [];
+    const classMeta = s.featureChoices?.classes?.feiticeiro?.metamagic || [];
+    classMeta.forEach(mId => {
+      const m = getMetamagicById(mId);
+      if (m && !activeMetamagic.some(x => x.id === m.id)) activeMetamagic.push(m);
+    });
+    s.levels.forEach((lvl, idx) => {
+      const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+      (featChoice?.metamagic || []).forEach(mId => {
+        const m = getMetamagicById(mId);
+        if (m && !activeMetamagic.some(x => x.id === m.id)) activeMetamagic.push(m);
+      });
+    });
+
+    const activeInvocations = [];
+    const classInvoc = s.featureChoices?.classes?.bruxo?.invocations || [];
+    classInvoc.forEach(invId => {
+      const inv = getInvocationById(invId);
+      if (inv && !activeInvocations.some(x => x.id === inv.id)) activeInvocations.push(inv);
+    });
+    s.levels.forEach((lvl, idx) => {
+      const featChoice = s.featureChoices?.feats?.[`level_${idx}`] || s.featureChoices?.feats?.[lvl.featId];
+      if (featChoice?.invocation) {
+        const inv = getInvocationById(featChoice.invocation);
+        if (inv && !activeInvocations.some(x => x.id === inv.id)) activeInvocations.push(inv);
+      }
+    });
+
+    const activeTotem = getTotemSpiritById(s.featureChoices?.subclasses?.totemico?.totemSpirit);
+    const activeHunterPrey = getHunterPreyById(s.featureChoices?.subclasses?.cacador?.hunterPrey);
 
     return {
       totalLevel,
@@ -361,7 +594,15 @@ class StateStore {
       passivePerception,
       savingThrowProficiencies: baseSaves,
       firstClass,
-      allProficientSkills: Array.from(allProficientSkills)
+      allProficientSkills: Array.from(allProficientSkills),
+      allExpertSkills: Array.from(allExpertSkills),
+      grantedSpells,
+      activeManeuvers,
+      activeFightingStyles,
+      activeMetamagic,
+      activeInvocations,
+      activeTotem,
+      activeHunterPrey
     };
   }
 
@@ -410,6 +651,111 @@ class StateStore {
   }
 
   // Exportar JSON
+
+  setRangerOption(option) {
+    this.setState({ rangerOption: option === 'phb_2014' ? 'phb_2014' : 'tcoe' });
+  }
+
+  setCurrency(currency) {
+    const cur = this.state.currency || { gp: 0, sp: 0, cp: 0 };
+    this.setState({ currency: { ...cur, ...currency } });
+  }
+
+  addCurrency(gp = 0, sp = 0, cp = 0) {
+    const cur = this.state.currency || { gp: 0, sp: 0, cp: 0 };
+    this.setState({
+      currency: {
+        gp: Math.max(0, Math.round(((cur.gp || 0) + gp) * 100) / 100),
+        sp: Math.max(0, Math.round(((cur.sp || 0) + sp) * 100) / 100),
+        cp: Math.max(0, Math.round(((cur.cp || 0) + cp) * 100) / 100)
+      }
+    });
+  }
+
+  buyItem(item, quantity = 1) {
+    if (!item) return false;
+    const qty = Math.max(1, parseInt(quantity, 10) || 1);
+    const cur = this.state.currency || { gp: 0, sp: 0, cp: 0 };
+    const unitCost = typeof item.cost === 'number' ? item.cost : (parseFloat(item.cost) || 0);
+    const totalCost = Math.round((unitCost * qty) * 100) / 100;
+    if ((cur.gp || 0) < totalCost) {
+      return false; // Saldo insuficiente em PO
+    }
+    const newGp = Math.round(((cur.gp || 0) - totalCost) * 100) / 100;
+
+    const inv = [...this.state.inventory];
+    const baseName = (item.name || '').trim();
+
+    // Procura se já existe um item equivalente no inventário para empilhar quantidade
+    let foundIndex = -1;
+    let existingQty = 0;
+
+    for (let i = 0; i < inv.length; i++) {
+      const entry = inv[i].trim();
+      const parsed = findItemByNameOrId(entry);
+      if (parsed && (parsed.id === item.id || parsed.name.toLowerCase() === baseName.toLowerCase())) {
+        foundIndex = i;
+        existingQty = parsed.quantity || 1;
+        break;
+      }
+    }
+
+    if (foundIndex >= 0) {
+      const newTotalQty = existingQty + qty;
+      inv[foundIndex] = `${newTotalQty}x ${baseName}`;
+    } else {
+      const entryName = qty > 1 ? `${qty}x ${baseName}` : baseName;
+      inv.push(entryName);
+    }
+
+    this.setState({
+      currency: { ...cur, gp: newGp },
+      inventory: inv
+    });
+    return true;
+  }
+
+  sellInventoryItem(index, resaleGp = 0) {
+    const inv = [...this.state.inventory];
+    if (index >= 0 && index < inv.length) {
+      inv.splice(index, 1);
+      const cur = this.state.currency || { gp: 0, sp: 0, cp: 0 };
+      const newGp = Math.round(((cur.gp || 0) + resaleGp) * 100) / 100;
+      this.setState({
+        inventory: inv,
+        currency: { ...cur, gp: newGp }
+      });
+      return true;
+    }
+    return false;
+  }
+
+  sellAllStartingEquipment() {
+    let totalGpRefund = 0;
+    const remainingInventory = [];
+    const inv = [...this.state.inventory];
+
+    inv.forEach(itemStr => {
+      const item = findItemByNameOrId(itemStr);
+      if (item && item.cost > 0) {
+        const resale = calculateItemResaleValue(item);
+        totalGpRefund += resale;
+      } else {
+        remainingInventory.push(itemStr);
+      }
+    });
+
+    if (totalGpRefund > 0) {
+      const cur = this.state.currency || { gp: 0, sp: 0, cp: 0 };
+      const newGp = Math.round(((cur.gp || 0) + totalGpRefund) * 100) / 100;
+      this.setState({
+        inventory: remainingInventory,
+        currency: { ...cur, gp: newGp }
+      });
+    }
+    return totalGpRefund;
+  }
+
   exportJson() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state, null, 2));
     const dlAnchor = document.createElement('a');

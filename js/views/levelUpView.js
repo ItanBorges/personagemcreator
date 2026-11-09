@@ -6,8 +6,18 @@ import { store } from '../state.js';
 import { CLASSES, getClassById } from '../data/classes.js';
 import { SUBCLASSES, getSubclassesByClass } from '../data/subclasses.js';
 import { FEATS, getFeatById } from '../data/feats.js';
-import { validateMulticlass, formatModifier } from '../rules-engine.js';
+import { validateMulticlass, formatModifier, SKILLS_LIST } from '../rules-engine.js';
 import { getSourceById } from '../data/sources.js';
+import {
+  renderManeuversSelectorHtml,
+  renderMagicInitiateSelectorHtml,
+  renderFightingStyleSelectorHtml,
+  renderMetamagicSelectorHtml,
+  renderInvocationSelectorHtml,
+  renderTotemSelectorHtml,
+  renderHunterPreySelectorHtml,
+  renderSkilledFeatSelectorHtml
+} from './choiceComponents.js';
 
 export function renderLevelUpView(container) {
   const state = store.getState();
@@ -208,6 +218,83 @@ export function renderLevelUpView(container) {
                 ` : ''}
               </div>
 
+              <!-- ESCOLHAS ESPECÍFICAS DA SUBCLASSE (EX: MESTRE DE BATALHA, TOTÉMICO, CAÇADOR) -->
+              ${((lvl.subclassId === 'mestre_batalha' || computed.subclasses[lvl.classId] === 'mestre_batalha') && isSubclassLevel) ? `
+                ${renderManeuversSelectorHtml(classLevelInThis, state.featureChoices?.subclasses?.mestre_batalha?.maneuvers || [])}
+              ` : ''}
+
+              ${((lvl.subclassId === 'totemico' || computed.subclasses[lvl.classId] === 'totemico') && isSubclassLevel) ? `
+                ${renderTotemSelectorHtml(state.featureChoices?.subclasses?.totemico?.totemSpirit || 'urso')}
+              ` : ''}
+
+              ${((lvl.subclassId === 'cacador' || computed.subclasses[lvl.classId] === 'cacador') && isSubclassLevel) ? `
+                ${renderHunterPreySelectorHtml(state.featureChoices?.subclasses?.cacador?.hunterPrey || 'assassino_colossos')}
+              ` : ''}
+
+              <!-- ESCOLHAS ESPECÍFICAS DA CLASSE NESTE NÍVEL (EX: ESTILO DE LUTA, METAMAGIA, INVOCAÇÕES) -->
+              ${(lvl.classId === 'patrulheiro' && classLevelInThis === 1) ? `
+                <div class="ranger-variant-card" style="background: var(--bg-surface-elevated); border: 1px solid var(--accent-emerald, #10b981); border-radius: var(--radius-md); padding: 1.1rem; margin-top: 1rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--accent-emerald, #10b981); display: flex; align-items: center; gap: 0.5rem;">
+                      <span>🏹</span> Regras da Classe Patrulheiro (Ranger Options):
+                    </div>
+                    <span class="brand-badge" style="background: ${state.rangerOption === 'phb_2014' ? 'var(--primary)' : 'var(--accent-rune)'}; color: #fff; font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 9999px;">
+                      ${state.rangerOption === 'phb_2014' ? 'Livro do Jogador (PHB 2014)' : 'Revisado: Livro de Tasha (TCoE)'}
+                    </span>
+                  </div>
+                  <p style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 0.85rem;">
+                    O <em>Caldeirão de Tasha (TCoE)</em> introduziu melhorias e características opcionais para aprimorar o Patrulheiro, substituindo habilidades restritas por opções mais dinâmicas em combate e exploração:
+                  </p>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.85rem;">
+                    <label style="display: flex; gap: 0.75rem; padding: 0.85rem; background: var(--bg-surface); border: 2px solid ${state.rangerOption === 'phb_2014' ? 'var(--primary)' : 'var(--border-color)'}; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s;">
+                      <input type="radio" name="ranger_opt_choice" value="phb_2014" ${state.rangerOption === 'phb_2014' ? 'checked' : ''} style="margin-top: 0.2rem; accent-color: var(--primary);">
+                      <div>
+                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">📖 Livro do Jogador (PHB 2014)</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.4;">
+                          &bull; <strong>Inimigo Favorito:</strong> Rastreamento e idiomas contra tipos específicos.<br>
+                          &bull; <strong>Explorador Natural:</strong> Terrenos específicos (floresta, montanha, etc.).<br>
+                          &bull; <strong>Consciência Primitiva:</strong> Gasta magia para sentir criaturas em 1,5km.<br>
+                          &bull; <strong>Ocultar-se em Plena Vista:</strong> Camuflagem com lama/folhagem.
+                        </div>
+                      </div>
+                    </label>
+
+                    <label style="display: flex; gap: 0.75rem; padding: 0.85rem; background: var(--bg-surface); border: 2px solid ${state.rangerOption === 'tcoe' ? 'var(--primary)' : 'var(--border-color)'}; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s;">
+                      <input type="radio" name="ranger_opt_choice" value="tcoe" ${state.rangerOption === 'tcoe' ? 'checked' : ''} style="margin-top: 0.2rem; accent-color: var(--primary);">
+                      <div>
+                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">🔮 Revisado: Livro de Tasha (TCoE)</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.4;">
+                          &bull; <strong>Inimigo Favorecido:</strong> Marca alvo ao acertar (+1d4 a +1d8 de dano sem ação).<br>
+                          &bull; <strong>Explorador Hábil:</strong> Perícia + Especialização + natação/escalada + cura de PV/exaustão.<br>
+                          &bull; <strong>Percepção Primitiva:</strong> Magias gratuitas (Falar c/ Animais, etc.).<br>
+                          &bull; <strong>Véu da Natureza:</strong> Invisibilidade com ação bônus.
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${(lvl.classId === 'guerreiro' && classLevelInThis === 1) ? `
+                ${renderFightingStyleSelectorHtml(state.featureChoices?.classes?.guerreiro?.fightingStyle || '', 'guerreiro')}
+              ` : ''}
+
+              ${(lvl.classId === 'paladino' && classLevelInThis === 2) ? `
+                ${renderFightingStyleSelectorHtml(state.featureChoices?.classes?.paladino?.fightingStyle || '', 'paladino')}
+              ` : ''}
+
+              ${(lvl.classId === 'patrulheiro' && classLevelInThis === 2) ? `
+                ${renderFightingStyleSelectorHtml(state.featureChoices?.classes?.patrulheiro?.fightingStyle || '', 'patrulheiro')}
+              ` : ''}
+
+              ${(lvl.classId === 'feiticeiro' && (state.edition === '2024' ? classLevelInThis === 2 : classLevelInThis === 3)) ? `
+                ${renderMetamagicSelectorHtml(state.featureChoices?.classes?.feiticeiro?.metamagic || [], 'feiticeiro')}
+              ` : ''}
+
+              ${(lvl.classId === 'bruxo' && classLevelInThis === 2) ? `
+                ${renderInvocationSelectorHtml(state.featureChoices?.classes?.bruxo?.invocations || [], 2, 'bruxo')}
+              ` : ''}
+
               <!-- ALERTA DE MULTICLASSE (Se for multiclasse) -->
               ${isMulticlass ? `
                 <div class="multiclass-alert ${validation.isValid ? 'alert-success' : 'alert-warning'}">
@@ -265,6 +352,56 @@ export function renderLevelUpView(container) {
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem;">
                           ${getFeatById(lvl.featId)?.description || ''}
                         </p>
+
+                        <!-- ESCOLHAS DO TALENTO SELECIONADO -->
+                        ${(() => {
+                          const featObj = getFeatById(lvl.featId);
+                          if (!featObj) return '';
+                          const featChoiceKey = `level_${index}`;
+                          const currentFeatChoice = state.featureChoices?.feats?.[featChoiceKey] || {};
+
+                          if (featObj.choiceType === 'magic_initiate' || (lvl.featId || '').startsWith('iniciado_magia')) {
+                            return renderMagicInitiateSelectorHtml({
+                              featKey: featChoiceKey,
+                              fixedClass: featObj.spellSourceClass || null,
+                              selectedClass: currentFeatChoice.class || featObj.spellSourceClass || 'mago',
+                              cantrip1: currentFeatChoice.cantrips?.[0] || '',
+                              cantrip2: currentFeatChoice.cantrips?.[1] || '',
+                              spell1: currentFeatChoice.spell1 || '',
+                              edition: state.edition
+                            });
+                          }
+                          if (featObj.choiceType === 'skills_or_tools' || lvl.featId === 'habil') {
+                            return renderSkilledFeatSelectorHtml(currentFeatChoice.skills || [], computed.allProficientSkills, featChoiceKey);
+                          }
+                          if (featObj.choiceType === 'fighting_style' || lvl.featId === 'iniciado_combate') {
+                            return renderFightingStyleSelectorHtml(currentFeatChoice.fightingStyle || '', featChoiceKey);
+                          }
+                          if (featObj.choiceType === 'metamagic' || lvl.featId === 'adepto_metamagia') {
+                            return renderMetamagicSelectorHtml(currentFeatChoice.metamagic || [], featChoiceKey);
+                          }
+                          if (featObj.choiceType === 'invocation' || lvl.featId === 'iniciado_sobrenatural') {
+                            return renderInvocationSelectorHtml(currentFeatChoice.invocation ? [currentFeatChoice.invocation] : [], 1, featChoiceKey);
+                          }
+                          if (featObj.choiceType === 'resilient' || lvl.featId === 'resiliente') {
+                            return `
+                              <div style="margin-top: 0.65rem; padding: 0.75rem; background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <label class="form-label" style="font-size: 0.82rem; color: var(--primary); font-weight: 700;">
+                                  🛡️ Atributo da Salvaguarda Resiliente (+1 no valor e Proficiência):
+                                </label>
+                                <select class="form-select select-resilient-stat" data-level-index="${index}">
+                                  <option value="con" ${currentFeatChoice.stat === 'con' ? 'selected' : ''}>Constituição (CON)</option>
+                                  <option value="wis" ${currentFeatChoice.stat === 'wis' ? 'selected' : ''}>Sabedoria (SAB)</option>
+                                  <option value="dex" ${currentFeatChoice.stat === 'dex' ? 'selected' : ''}>Destreza (DES)</option>
+                                  <option value="str" ${currentFeatChoice.stat === 'str' ? 'selected' : ''}>Força (FOR)</option>
+                                  <option value="int" ${currentFeatChoice.stat === 'int' ? 'selected' : ''}>Inteligência (INT)</option>
+                                  <option value="cha" ${currentFeatChoice.stat === 'cha' ? 'selected' : ''}>Carisma (CAR)</option>
+                                </select>
+                              </div>
+                            `;
+                          }
+                          return '';
+                        })()}
                       ` : ''}
                     </div>
                   ` : (lvl.asiType === 'stats_plus2' || lvl.asiType === 'stats' ? `
@@ -447,6 +584,165 @@ function setupLevelUpEvents(container) {
       let statA = keys[0] || (statB === 'str' ? 'con' : 'str');
       if (statA === statB) statA = statB === 'str' ? 'con' : 'str';
       store.updateLevel(idx, { asiType: 'stats_plus1_two', asiStats: { [statA]: 1, [statB]: 1 } });
+    });
+  });
+
+  // Manobras do Mestre de Batalha
+  container.querySelectorAll('.select-battlemaster-maneuver').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const slotIdx = parseInt(sel.getAttribute('data-slot-index'), 10);
+      const val = sel.value;
+      const curManeuvers = [...(store.getState().featureChoices?.subclasses?.mestre_batalha?.maneuvers || [])];
+      while (curManeuvers.length <= slotIdx) curManeuvers.push('');
+      curManeuvers[slotIdx] = val;
+      store.setFeatureChoice('subclasses', 'mestre_batalha', { maneuvers: curManeuvers.filter(Boolean) });
+    });
+  });
+
+  // Espírito Totêmico (Bárbaro)
+  container.querySelectorAll('.select-totem-spirit').forEach(sel => {
+    sel.addEventListener('change', () => {
+      store.setFeatureChoice('subclasses', 'totemico', { totemSpirit: sel.value });
+    });
+  });
+
+  // Presa do Caçador (Patrulheiro)
+  container.querySelectorAll('.select-hunter-prey').forEach(sel => {
+    sel.addEventListener('change', () => {
+      store.setFeatureChoice('subclasses', 'cacador', { hunterPrey: sel.value });
+    });
+  });
+
+  // Alternância de Regras do Patrulheiro (PHB 2014 vs Revisado Livro de Tasha)
+  container.querySelectorAll('input[name="ranger_opt_choice"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      store.setRangerOption(e.target.value);
+    });
+  });
+
+  // Estilo de Luta (Classe ou Talento)
+  container.querySelectorAll('.select-fighting-style').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const ctx = sel.getAttribute('data-context-key');
+      if (ctx && ctx.startsWith('level_')) {
+        store.setFeatureChoice('feats', ctx, { fightingStyle: sel.value });
+      } else if (ctx) {
+        store.setFeatureChoice('classes', ctx, { fightingStyle: sel.value });
+      }
+    });
+  });
+
+  // Metamagia (Feiticeiro ou Talento)
+  container.querySelectorAll('.select-metamagic-option').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const ctx = sel.getAttribute('data-context-key');
+      const slotIdx = parseInt(sel.getAttribute('data-slot-index'), 10) || 0;
+      const val = sel.value;
+      if (ctx && ctx.startsWith('level_')) {
+        const cur = store.getState().featureChoices?.feats?.[ctx]?.metamagic || [];
+        const updated = [...cur];
+        while (updated.length <= slotIdx) updated.push('');
+        updated[slotIdx] = val;
+        store.setFeatureChoice('feats', ctx, { metamagic: updated.filter(Boolean) });
+      } else if (ctx) {
+        const cur = store.getState().featureChoices?.classes?.[ctx]?.metamagic || [];
+        const updated = [...cur];
+        while (updated.length <= slotIdx) updated.push('');
+        updated[slotIdx] = val;
+        store.setFeatureChoice('classes', ctx, { metamagic: updated.filter(Boolean) });
+      }
+    });
+  });
+
+  // Invocações Sobrenaturais (Bruxo ou Talento)
+  container.querySelectorAll('.select-invocation-option').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const ctx = sel.getAttribute('data-context-key');
+      const slotIdx = parseInt(sel.getAttribute('data-slot-index'), 10) || 0;
+      const val = sel.value;
+      if (ctx && ctx.startsWith('level_')) {
+        store.setFeatureChoice('feats', ctx, { invocation: val });
+      } else if (ctx) {
+        const cur = store.getState().featureChoices?.classes?.[ctx]?.invocations || [];
+        const updated = [...cur];
+        while (updated.length <= slotIdx) updated.push('');
+        updated[slotIdx] = val;
+        store.setFeatureChoice('classes', ctx, { invocations: updated.filter(Boolean) });
+      }
+    });
+  });
+
+  // Iniciado em Magia: Mudança de Classe
+  container.querySelectorAll('.select-magic-initiate-class').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      if (featKey && featKey.startsWith('level_')) {
+        store.setFeatureChoice('feats', featKey, { class: e.target.value, cantrips: [], spell1: '' });
+      }
+    });
+  });
+
+  // Iniciado em Magia: 1º Truque
+  container.querySelectorAll('.select-magic-initiate-cantrip1').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      const val = e.target.value;
+      if (featKey && featKey.startsWith('level_')) {
+        const cur = { ...(store.getState().featureChoices?.feats?.[featKey] || {}) };
+        const cantrips = [...(cur.cantrips || [])];
+        cantrips[0] = val;
+        store.setFeatureChoice('feats', featKey, { ...cur, cantrips });
+      }
+    });
+  });
+
+  // Iniciado em Magia: 2º Truque
+  container.querySelectorAll('.select-magic-initiate-cantrip2').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      const val = e.target.value;
+      if (featKey && featKey.startsWith('level_')) {
+        const cur = { ...(store.getState().featureChoices?.feats?.[featKey] || {}) };
+        const cantrips = [...(cur.cantrips || [])];
+        cantrips[1] = val;
+        store.setFeatureChoice('feats', featKey, { ...cur, cantrips });
+      }
+    });
+  });
+
+  // Iniciado em Magia: Magia 1º Círculo
+  container.querySelectorAll('.select-magic-initiate-spell1').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      const val = e.target.value;
+      if (featKey && featKey.startsWith('level_')) {
+        const cur = { ...(store.getState().featureChoices?.feats?.[featKey] || {}) };
+        store.setFeatureChoice('feats', featKey, { ...cur, spell1: val });
+      }
+    });
+  });
+
+  // Talento Hábil: Perícias
+  container.querySelectorAll('.select-skilled-skill').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const ctx = sel.getAttribute('data-context-key');
+      const slotIdx = parseInt(sel.getAttribute('data-slot-index'), 10) || 0;
+      const val = e.target.value;
+      if (ctx && ctx.startsWith('level_')) {
+        const cur = { ...(store.getState().featureChoices?.feats?.[ctx] || {}) };
+        const skills = [...(cur.skills || [])];
+        skills[slotIdx] = val;
+        store.setFeatureChoice('feats', ctx, { ...cur, skills: skills.filter(Boolean) });
+      }
+    });
+  });
+
+  // Talento Resiliente: Atributo
+  container.querySelectorAll('.select-resilient-stat').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const idx = parseInt(sel.getAttribute('data-level-index'), 10);
+      const featKey = `level_${idx}`;
+      store.setFeatureChoice('feats', featKey, { stat: e.target.value });
     });
   });
 }

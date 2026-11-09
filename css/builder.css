@@ -385,3 +385,72 @@
   padding-top: 0.4rem;
   border-top: 1px solid var(--border-color);
 }
+
+/* ==========================================================================
+   ESTILOS DO SISTEMA DE ESCOLHAS DINÂMICAS (MANOBRAS, TALENTOS, ESTILOS, ETC.)
+   ========================================================================== */
+.choice-slot-card {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.choice-slot-card:hover {
+  border-color: var(--primary-border);
+}
+
+.choice-description-card {
+  transition: all 0.2s ease;
+}
+
+.subclass-choice-box,
+.magic-initiate-box,
+.choice-fighting-style-box,
+.choice-metamagic-box,
+.choice-invocations-box,
+.choice-totem-box,
+.choice-hunter-box,
+.choice-skilled-box {
+  animation: fadeInChoice 0.25s ease-in-out;
+}
+
+@keyframes fadeInChoice {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loja de Equipamentos & Abas do Mercador */
+.btn-shop-tab {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.btn-shop-tab:hover {
+  color: var(--text-main);
+  border-color: var(--primary);
+}
+
+.btn-shop-tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(185, 28, 28, 0.25);
+}
+
+.ranger-variant-card {
+  animation: fadeInChoice 0.25s ease-in-out;
+}
+
+.btn-sell-single-item:hover {
+  background: rgba(251, 191, 36, 0.3) !important;
+  transform: scale(1.02);
+}
+
+

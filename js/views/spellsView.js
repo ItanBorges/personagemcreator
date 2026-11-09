@@ -106,7 +106,11 @@ export function renderSpellsView(container) {
     ? `Espaços Disponíveis: ${slotParts.join(' &bull; ')}`
     : `Espaços Disponíveis: <em>Nenhum espaço no nível atual</em>`;
 
-  const totalCatalogCount = SPELLS.length;
+  const activeEditionSpells = SPELLS.filter(sp => {
+    if (state.edition === '2024') return sp.sourceId === 'phb_2024';
+    return sp.sourceId === 'phb_2014' || state.activeSources.includes(sp.sourceId);
+  });
+  const totalCatalogCount = activeEditionSpells.length;
   const filteredSpells = getFilteredSpells();
   const knownSpellIds = state.knownSpells.map(s => s.spellId);
 
@@ -147,18 +151,59 @@ export function renderSpellsView(container) {
       ` : ''}
 
       <!-- Alerta se livros fontes estiverem filtrados ocultando o catálogo -->
-      ${state.activeSources && (!state.activeSources.includes('phb_2024') || state.activeSources.length < SOURCES.length) ? `
-        <div class="multiclass-alert alert-warning" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem;">
-            <span style="font-size: 1.3rem;">📚</span>
-            <div>
-              <strong>Atenção às Fontes:</strong> Apenas <strong>${state.activeSources.length} de ${SOURCES.length} livros</strong> estão ativos.
-              ${!state.activeSources.includes('phb_2024') ? `<span style="color: var(--accent-amber); font-weight: bold;">(O Livro do Jogador 2024 estava desativado, ocultando as magias básicas!)</span>` : ''}
+      ${(() => {
+        const targetCore = state.edition === '2024' ? 'phb_2024' : 'phb_2014';
+        const isCoreMissing = state.activeSources && !state.activeSources.includes(targetCore);
+        if (!isCoreMissing) return '';
+        const coreName = state.edition === '2024' ? "Livro do Jogador 2024 (PHB'24)" : "Livro do Jogador 2014 (PHB'14)";
+        return `
+          <div class="multiclass-alert alert-warning" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem;">
+              <span style="font-size: 1.3rem;">📚</span>
+              <div>
+                <strong>Atenção às Fontes:</strong> O <strong>${coreName}</strong> está desativado no filtro superior, ocultando o catálogo principal de magias.
+              </div>
             </div>
+            <button class="btn btn-sm btn-primary" id="btn-activate-all-books" style="white-space: nowrap;">
+              ✨ Ativar Livro do Jogador (${totalCatalogCount} Magias)
+            </button>
           </div>
-          <button class="btn btn-sm btn-primary" id="btn-activate-all-books" style="white-space: nowrap;">
-            ✨ Ativar Todos os Livros (Ver 125 Magias)
-          </button>
+        `;
+      })()}
+
+      <!-- Magias Concedidas por Talentos, Raça ou Antecedente -->
+      ${(computed.grantedSpells && computed.grantedSpells.length > 0) ? `
+        <div style="margin-bottom: 1.5rem; padding: 1.15rem; background: var(--bg-surface-elevated); border: 1px solid var(--accent-rune); border-radius: var(--radius-md);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <strong style="color: var(--accent-rune); font-size: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+              🌟 Magias Concedidas por Talentos, Raça ou Antecedente:
+            </strong>
+            <span class="badge-origin">${computed.grantedSpells.length} Magia${computed.grantedSpells.length > 1 ? 's' : ''} Adicional${computed.grantedSpells.length > 1 ? 'is' : ''}</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.85rem;">
+            ${computed.grantedSpells.map(g => {
+              const sp = g.spell;
+              if (!sp) return '';
+              const src = getSourceById(sp.sourceId);
+              return `
+                <div class="spell-select-card selected" style="cursor: default;">
+                  <div class="spell-card-header">
+                    <div>
+                      <div class="spell-card-title">${sp.name}</div>
+                      <div class="spell-card-meta">${sp.nameEn} &bull; ${sp.level === 0 ? 'Truque' : `${sp.level}º Círculo`} &bull; ${sp.school}</div>
+                    </div>
+                    <span class="badge-source" data-source="${sp.sourceId}">${src?.code || 'PHB'}</span>
+                  </div>
+                  <div class="spell-card-desc">${sp.description}</div>
+                  <div class="spell-card-footer">
+                    <span class="badge-origin">${g.origin}</span>
+                    <span style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: bold;">✓ Aprendida</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
         </div>
       ` : ''}
 
@@ -318,7 +363,7 @@ function renderSpellsCardsHtml(spellsList, knownSpellIds, maxCastableCircle, cas
 
   return spellsList.map(spell => {
     const isSelected = knownSpellIds.includes(spell.id);
-    const spellSource = (state.edition === '2014' && spell.sourceId === 'phb_2024') ? 'phb_2014' : spell.sourceId;
+    const spellSource = spell.sourceId;
     const src = getSourceById(spellSource);
     const circleText = spell.level === 0 ? 'Truque' : `${spell.level}º Círculo`;
     const isAboveLevel = maxCastableCircle > 0 && spell.level > maxCastableCircle;
@@ -384,8 +429,8 @@ function getFilteredSpells() {
     if (state.edition === '2024') {
       return sp.sourceId === 'phb_2024';
     } else {
-      // 2014: aceita livros 2014 ativos ou magias clássicas do PHB
-      return state.activeSources.includes(sp.sourceId) || sp.sourceId === 'phb_2024';
+      // 2014: aceita livros 2014 ativos (PHB 2014 com 361 magias, Tasha, Xanathar, etc.)
+      return state.activeSources.includes(sp.sourceId);
     }
   });
 
@@ -606,18 +651,22 @@ function setupSpellsEvents(container) {
     activeClassFilter = 'all';
     searchQuery = '';
     onlyKnownFilter = false;
-    // Garante que todas as fontes estejam ativas no store para exibir 125 magias
+    const curEdition = store.getState().edition;
+    const targetCore = curEdition === '2024' ? 'phb_2024' : 'phb_2014';
     const currentSources = store.getState().activeSources;
-    if (!currentSources || currentSources.length < SOURCES.length || !currentSources.includes('phb_2024')) {
-      store.setState({ activeSources: SOURCES.map(s => s.id) });
+    if (!currentSources || !currentSources.includes(targetCore)) {
+      const allowedSources = curEdition === '2024' ? ['phb_2024'] : SOURCES.filter(s => s.edition === '2014').map(s => s.id);
+      store.setState({ activeSources: allowedSources });
     }
     if (searchInput) searchInput.value = '';
     refreshSpellsGrid(container);
   });
 
-  // Botão do banner para ativar todos os livros
+  // Botão do banner para ativar livro do jogador
   container.querySelector('#btn-activate-all-books')?.addEventListener('click', () => {
-    store.setState({ activeSources: SOURCES.map(s => s.id) });
+    const curEdition = store.getState().edition;
+    const allowedSources = curEdition === '2024' ? ['phb_2024'] : SOURCES.filter(s => s.edition === '2014').map(s => s.id);
+    store.setState({ activeSources: allowedSources });
   });
 
   container.querySelector('#btn-filter-my-class')?.addEventListener('click', () => {

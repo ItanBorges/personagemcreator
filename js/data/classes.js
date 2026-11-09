@@ -755,17 +755,47 @@ export const CLASSES = [
     ],
     features: {
       1: [
-        { name: 'Inimigo Favorito (2014)', description: 'Vantagem em testes de Sobrevivência para rastrear seus inimigos favoritos e aprende seus idiomas.', source: 'phb_2014' },
-        { name: 'Explorador Natural (2014)', description: 'Especialista em navegar pelo seu tipo de terreno favorito (viagem rápida, forragem duplicada).', source: 'phb_2014' },
+        { name: 'Inimigo Favorito (PHB 2014)', description: 'Vantagem em testes de Sobrevivência para rastrear seus tipos de inimigos favoritos e aprende seus idiomas.', source: 'phb_2014', rangerVariant: 'phb_2014' },
+        { name: 'Explorador Natural (PHB 2014)', description: 'Especialista em navegar pelo seu tipo de terreno favorito (viagem rápida, forragem duplicada, terreno difícil não atrasa o grupo).', source: 'phb_2014', rangerVariant: 'phb_2014' },
+        { name: 'Inimigo Favorecido (Favored Foe - TCoE)', description: 'Substitui Inimigo Favorito. Ao atingir uma criatura com ataque, marca o alvo para causar +1d4 de dano extra (1d6 no nvl 6, 1d8 no nvl 14) uma vez por turno. Usos iguais ao bônus de proficiência.', source: 'tcoe', rangerVariant: 'tcoe' },
+        { name: 'Explorador Hábil: Astuto (Deft Explorer: Canny - TCoE)', description: 'Substitui Explorador Natural. Ganha proficiência em 1 perícia da lista de patrulheiro e Especialização (dobro do bônus) em 1 perícia à sua escolha, além de 2 idiomas adicionais.', source: 'tcoe', rangerVariant: 'tcoe' },
         { name: 'Inimigo Favorito (Marca do Caçador 2024)', description: 'No D&D 2024, você tem a magia Marca do Caçador sempre preparada e pode lançá-la sem gastar espaços de magia.', source: 'phb_2024' },
         { name: 'Hábil (Deft Explorer - Regra 2024)', description: 'Especialização em 1 perícia e 2 idiomas adicionais no 1º nível.', source: 'phb_2024' },
         { name: 'Maestria com Armas (Regra 2024)', description: 'No D&D 2024, você desbloqueia propriedades de Maestria em 2 armas à sua escolha.', source: 'phb_2024' }
       ],
       2: [
-        { name: 'Estilo de Luta & Conjuração de Patrulheiro', description: 'Estilo marcial (Arquearia +2 acerto) e magias da natureza.' }
+        { name: 'Estilo de Luta & Conjuração de Patrulheiro', description: 'Escolha de Estilo Marcial (Arquearia, Defesa, Duelo, Combate com Duas Armas) e conjuração de magias primordiais da natureza.' },
+        { name: 'Opções Adicionais de Estilo de Luta do Tasha (TCoE)', description: 'Pode escolher Tiroteio Próximo, Luta às Cegas ou Guerreiro Druídico (2 truques de druida), e pode usar foco druídico para lançar magias.', source: 'tcoe', rangerVariant: 'tcoe' }
       ],
-      3: [{ name: 'Arquétipo de Patrulheiro (Subclasse)', description: 'Escolha de subclasse (Caçador, Mestre das Bestas, Andarilho do Horizonte, Gloom Stalker).' }],
-      5: [{ name: 'Ataque Extra', description: 'Dois ataques ao realizar ação de Ataque.' }]
+      3: [
+        { name: 'Arquétipo de Patrulheiro (Subclasse)', description: 'Escolha de subclasse (Caçador, Mestre das Bestas, Andarilho Feérico, Gloom Stalker, Guardião dos Enxames, etc.).' },
+        { name: 'Consciência Primitiva (PHB 2014)', description: 'Gasta um espaço de magia para sentir a presença de aberrações, celestiais, dragões, elementais, fadas, ínferos e mortos-vivos num raio de até 1,5 km.', source: 'phb_2014', rangerVariant: 'phb_2014' },
+        { name: 'Percepção Primitiva (Primal Awareness - TCoE)', description: 'Substitui Consciência Primitiva. Aprende magias adicionais gratuitas que não contam no limite conhecido e podem ser conjuradas 1x por dia sem gastar espaço: Falar com Animais (3º), Sentido Bestial (5º), Sentido de Bestas (9º), Localizar Criatura (13º), Comunhão com a Natureza (17º).', source: 'tcoe', rangerVariant: 'tcoe' }
+      ],
+      5: [
+        { name: 'Ataque Extra', description: 'Dois ataques ao realizar ação de Ataque no seu turno.' }
+      ],
+      6: [
+        { name: 'Melhoria de Inimigo Favorito e Terreno (PHB 2014)', description: 'Escolhe mais um inimigo favorito e mais um terreno natural favorito.', source: 'phb_2014', rangerVariant: 'phb_2014' },
+        { name: 'Explorador Hábil: Andarilho (Deft Explorer: Roving - TCoE)', description: 'Seu deslocamento aumenta em +1,5m e você adquire deslocamento de escalada e natação iguais ao seu deslocamento a pé.', source: 'tcoe', rangerVariant: 'tcoe' }
+      ],
+      8: [
+        { name: 'Passo da Terra (Land\'s Stride)', description: 'Mover-se por terreno difícil não mágico não consome movimento extra e concede vantagem contra plantas com magia.' }
+      ],
+      10: [
+        { name: 'Ocultar-se em Plena Vista (PHB 2014)', description: 'Gasta 1 minuto para se camuflar com camuflagem natural, recebendo +10 em Furtividade enquanto permanecer imóvel.', source: 'phb_2014', rangerVariant: 'phb_2014' },
+        { name: 'Explorador Hábil: Incansável (Deft Explorer: Tireless - TCoE)', description: 'Como ação bônus, recebe 1d8 + mod Sabedoria de PV temporários (usos iguais ao bônus de proficiência). Além disso, reduz 1 nível de exaustão em descanso curto.', source: 'tcoe', rangerVariant: 'tcoe' },
+        { name: 'Véu da Natureza (Nature\'s Veil - TCoE)', description: 'Substitui Ocultar-se em Plena Vista. Como ação bônus, torna-se magicamente invisível até o início do seu próximo turno. Usos iguais ao bônus de proficiência.', source: 'tcoe', rangerVariant: 'tcoe' }
+      ],
+      14: [
+        { name: 'Desaparecer (Vanish)', description: 'Pode usar a ação Esconder-se como ação bônus no seu turno e não pode ser rastreado por meios não mágicos.' }
+      ],
+      18: [
+        { name: 'Sentidos Ferais (Feral Senses)', description: 'Não sofre desvantagem ao atacar criaturas que não possa ver a até 9 metros.' }
+      ],
+      20: [
+        { name: 'Matador de Inimigos (Foe Slayer)', description: 'Uma vez em cada um de seus turnos, você pode adicionar seu modificador de Sabedoria ao ataque ou dano contra seu inimigo favorecido.' }
+      ]
     }
   },
   {

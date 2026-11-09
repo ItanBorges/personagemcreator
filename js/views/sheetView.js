@@ -129,6 +129,12 @@ export function renderSheetView(container) {
           if (f.name.includes('(2014)') || f.name.includes('(Regra 2014)') || f.name.includes('(Subclasse 2014)')) return;
         }
 
+        // Filtro específico da opção de Patrulheiro (PHB 2014 vs Revisado Livro de Tasha)
+        if (lvl.classId === 'patrulheiro' && f.rangerVariant) {
+          if (state.rangerOption === 'phb_2014' && f.rangerVariant === 'tcoe') return;
+          if (state.rangerOption === 'tcoe' && f.rangerVariant === 'phb_2014') return;
+        }
+
         const featureSource = f.source || (state.edition === '2024' ? 'phb_2024' : 'phb_2014');
 
         allFeatures.push({
@@ -173,6 +179,66 @@ export function renderSheetView(container) {
     }
   });
 
+  // Manobras de Mestre de Batalha Escolhidas
+  (computed.activeManeuvers || []).forEach(m => {
+    allFeatures.push({
+      title: `⚔️ Manobra: ${m.name} (${m.nameEn}) [${m.type}]`,
+      desc: m.description,
+      source: 'phb_2024',
+      origin: 'Subclasse: Mestre da Batalha'
+    });
+  });
+
+  // Estilos de Luta Escolhidos
+  (computed.activeFightingStyles || []).forEach(fs => {
+    allFeatures.push({
+      title: `🛡️ Estilo de Luta: ${fs.name} (${fs.nameEn})`,
+      desc: fs.description,
+      source: 'phb_2024',
+      origin: 'Estilo Marcial'
+    });
+  });
+
+  // Metamagia Escolhida
+  (computed.activeMetamagic || []).forEach(meta => {
+    allFeatures.push({
+      title: `🔮 Metamagia: ${meta.name} (${meta.nameEn})`,
+      desc: `${meta.description} (Custo: ${meta.cost})`,
+      source: 'phb_2024',
+      origin: 'Feitiçaria / Metamagia'
+    });
+  });
+
+  // Invocações Sobrenaturais Escolhidas
+  (computed.activeInvocations || []).forEach(inv => {
+    allFeatures.push({
+      title: `👁️ Invocação Sobrenatural: ${inv.name} (${inv.nameEn})`,
+      desc: inv.description,
+      source: 'phb_2024',
+      origin: 'Pacto Sobrenatural'
+    });
+  });
+
+  // Espírito Totêmico
+  if (computed.activeTotem) {
+    allFeatures.push({
+      title: `🐻 Espírito Totêmico: ${computed.activeTotem.name}`,
+      desc: computed.activeTotem.description,
+      source: 'phb_2024',
+      origin: 'Subclasse: Guerreiro Totêmico'
+    });
+  }
+
+  // Presa do Caçador
+  if (computed.activeHunterPrey) {
+    allFeatures.push({
+      title: `🏹 Presa do Caçador: ${computed.activeHunterPrey.name}`,
+      desc: computed.activeHunterPrey.description,
+      source: 'phb_2024',
+      origin: 'Subclasse: Caçador'
+    });
+  }
+
   // Cálculo de Ataques com Armas
   const attacksList = [];
   state.equippedWeapons.forEach(wId => {
@@ -214,6 +280,37 @@ export function renderSheetView(container) {
   }
   const spellSaveDc = 8 + computed.profBonus + computed.modifiers[spellStat];
   const spellAtkBonus = formatModifier(computed.profBonus + computed.modifiers[spellStat]);
+
+  // Divisão Inteligente de Características para Diagramação Perfeita em Impressão/PDF:
+  // Se couber tudo na Coluna 3 da Página 1 (até ~220mm), exibe tudo na Página 1.
+  // Se ultrapassar o limite, as principais ficam na Página 1 e as excedentes geram uma
+  // página suplementar estruturada em até 3 colunas (conforme solicitado pelo usuário).
+  const MAX_P1_SAFE_HEIGHT = 220;
+  let totalAllFeaturesHeight = 0;
+  allFeatures.forEach(f => {
+    const h = 18 + Math.ceil(((f.desc || '').length) / 45) * 3.6;
+    totalAllFeaturesHeight += h;
+  });
+
+  let page1Features = [];
+  let overflowFeatures = [];
+
+  if (totalAllFeaturesHeight <= MAX_P1_SAFE_HEIGHT) {
+    page1Features = [...allFeatures];
+    overflowFeatures = [];
+  } else {
+    const P1_TARGET_HEIGHT = 175;
+    let accH = 0;
+    for (const f of allFeatures) {
+      const h = 18 + Math.ceil(((f.desc || '').length) / 45) * 3.6;
+      if (accH + h <= P1_TARGET_HEIGHT || page1Features.length < 4) {
+        page1Features.push(f);
+        accH += h;
+      } else {
+        overflowFeatures.push(f);
+      }
+    }
+  }
 
   container.innerHTML = `
     <div class="sheet-container">
@@ -277,13 +374,16 @@ export function renderSheetView(container) {
               { key: 'int', label: 'INTELIGÊNCIA' },
               { key: 'wis', label: 'SABEDORIA' },
               { key: 'cha', label: 'CARISMA' }
-            ].map(({ key, label }) => `
-              <div class="sheet-stat-pill">
-                <span class="stat-pill-name">${label}</span>
-                <span class="stat-pill-mod">${formatModifier(computed.modifiers[key])}</span>
-                <span class="stat-pill-base">${computed.finalStats[key]}</span>
-              </div>
-            `).join('')}
+            ].map(({ key, label }) => {
+              const isLong = label.length > 8;
+              return `
+                <div class="sheet-stat-pill">
+                  <span class="stat-pill-name ${isLong ? 'stat-name-long' : ''}">${label}</span>
+                  <span class="stat-pill-mod">${formatModifier(computed.modifiers[key])}</span>
+                  <span class="stat-pill-base">${computed.finalStats[key]}</span>
+                </div>
+              `;
+            }).join('')}
           </div>
 
           <!-- Salvaguardas e Perícias -->
@@ -456,15 +556,15 @@ export function renderSheetView(container) {
           <!-- Equipamento & Riqueza -->
           <div class="sheet-bordered-panel">
             <div class="panel-header-title">Equipamento & Riquezas</div>
-            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.8rem; background: var(--bg-surface); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-              <div>PO: <strong>25</strong></div> &bull;
-              <div>PP: <strong>10</strong></div> &bull;
-              <div>PC: <strong>50</strong></div>
+            <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; font-size: 0.82rem; background: var(--bg-surface); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <div>🪙 PO: <strong style="color: #fbbf24;">${state.currency?.gp ?? 15}</strong></div> &bull;
+              <div>🥈 PP: <strong style="color: #cbd5e1;">${state.currency?.sp ?? 0}</strong></div> &bull;
+              <div>🥉 PC: <strong style="color: #d97706;">${state.currency?.cp ?? 0}</strong></div>
             </div>
 
             <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
               <p><strong>Armadura Equipada:</strong> ${getArmorById(state.armorId).name} ${state.hasShield ? '+ Escudo' : ''}</p>
-              <p><strong>Mochila:</strong> ${state.inventory.join(', ')}</p>
+              <p><strong>Mochila:</strong> ${state.inventory.length > 0 ? state.inventory.join(', ') : 'Mochila vazia'}</p>
             </div>
           </div>
         </div>
@@ -475,11 +575,11 @@ export function renderSheetView(container) {
           <div class="sheet-bordered-panel">
             <div class="panel-header-title" style="display: flex; justify-content: space-between; align-items: center;">
               <span>Características & Habilidades</span>
-              <span class="badge-origin">${allFeatures.length} Ativas</span>
+              <span class="badge-origin">${page1Features.length}${overflowFeatures.length > 0 ? ` de ${allFeatures.length}` : ''} Ativas</span>
             </div>
 
             <div class="features-list">
-              ${allFeatures.map(feat => {
+              ${page1Features.map(feat => {
                 const src = getSourceById(feat.source);
                 return `
                   <div class="feature-item-card">
@@ -499,97 +599,169 @@ export function renderSheetView(container) {
         </div>
       </div>
 
-      <!-- ==================== SEÇÃO DE MAGIAS DA FICHA ==================== -->
-      ${state.knownSpells.length > 0 || computed.spellSlotsData.casterLevel > 0 ? `
-        <div class="sheet-spells-section page-break-after">
-          <h3 style="font-family: var(--font-title); font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-            📖 Folha de Magias do Personagem (Pt-Br)
-          </h3>
+      <!-- ==================== PÁGINA SUPLEMENTAR: CARACTERÍSTICAS & HABILIDADES (ATÉ 3 COLUNAS) ==================== -->
+      ${overflowFeatures.length > 0 ? `
+        <div class="sheet-features-continuation-section">
+          <!-- Cabeçalho de continuação para identificação imediata na impressão -->
+          <div class="sheet-header-grid continuation-mini-header">
+            <div class="sheet-name-block">
+              <div class="sheet-char-name">${state.characterName || 'Personagem Sem Nome'}</div>
+              <div class="sheet-label-sub">FOLHA SUPLEMENTAR — CARACTERÍSTICAS (CONTINUAÇÃO)</div>
+            </div>
 
-          <!-- Barra de Estatísticas Mágicas -->
-          <div class="spells-header-bar">
-            <div>
-              <span class="sheet-label-sub">ATRIBUTO DE CONJURAÇÃO:</span>
-              <div style="font-size: 1.15rem; font-weight: bold; color: var(--text-main);">${spellStat.toUpperCase()}</div>
-            </div>
-            <div>
-              <span class="sheet-label-sub">CD DE SALVAGUARDA DE MAGIA:</span>
-              <div style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">${spellSaveDc}</div>
-            </div>
-            <div>
-              <span class="sheet-label-sub">BÔNUS DE ATAQUE MÁGICO:</span>
-              <div style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">${spellAtkBonus}</div>
+            <div class="sheet-header-fields">
+              <div class="header-field-item">
+                <span class="header-field-val">${classSummaryStr}</span>
+                <span class="sheet-label-sub">CLASSE & NÍVEL</span>
+              </div>
+              <div class="header-field-item">
+                <span class="header-field-val">${bg?.name || 'Personalizado'}</span>
+                <span class="sheet-label-sub">ANTECEDENTE</span>
+              </div>
+              <div class="header-field-item">
+                <span class="header-field-val">${overflowFeatures.length} Características Adicionais</span>
+                <span class="sheet-label-sub">SUPLEMENTO DE CARACTERÍSTICAS</span>
+              </div>
             </div>
           </div>
 
-          <!-- Tabela de Magias Agrupadas por Círculo -->
-          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-            ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(circle => {
-              const spellsInCircle = state.knownSpells
-                .map(item => ({ ...item, spell: getSpellById(item.spellId) }))
-                .filter(item => item.spell && item.spell.level === circle);
+          <!-- Módulo em até 3 Colunas com o mesmo estilo da primeira página -->
+          <div class="sheet-bordered-panel" style="margin-top: 0.75rem;">
+            <div class="panel-header-title" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Características, Talentos & Habilidades Especiais (Continuação)</span>
+              <span class="badge-origin">${overflowFeatures.length} Ativas nesta página</span>
+            </div>
 
-              const totalSlots = circle === 0 ? 0 : (computed.spellSlotsData.slots[circle - 1] || 0);
-              const pactSlotsThisCircle = computed.spellSlotsData.pact.slotLevel === circle ? computed.spellSlotsData.pact.slots : 0;
-
-              if (spellsInCircle.length === 0 && totalSlots === 0 && pactSlotsThisCircle === 0) {
-                return '';
-              }
-
-              const circleTitle = circle === 0 ? 'Truques (Sem Custo de Espaço)' : `${circle}º Círculo`;
-
-              return `
-                <div class="spells-circle-group">
-                  <div class="circle-group-title">
-                    <span>${circleTitle}</span>
-
-                    ${totalSlots > 0 ? `
-                      <div class="circle-slots-tracker">
-                        <span>Espaços (${totalSlots}):</span>
-                        ${Array.from({ length: totalSlots }).map(() => '<input type="checkbox" title="Marcar espaço gasto">').join('')}
-                      </div>
-                    ` : ''}
-
-                    ${pactSlotsThisCircle > 0 ? `
-                      <div class="circle-slots-tracker" style="color: var(--accent-amber);">
-                        <span>Espaços de Pacto Bruxo (${pactSlotsThisCircle}):</span>
-                        ${Array.from({ length: pactSlotsThisCircle }).map(() => '<input type="checkbox" title="Espaço de pacto gasto">').join('')}
-                      </div>
-                    ` : ''}
+            <div class="features-continuation-grid ${overflowFeatures.length <= 2 ? 'grid-2-cols' : 'grid-3-cols'}">
+              ${overflowFeatures.map(feat => {
+                const src = getSourceById(feat.source);
+                return `
+                  <div class="feature-item-card">
+                    <div class="feature-title-row">
+                      <span class="feature-name">${feat.title}</span>
+                      <span class="badge-source" data-source="${feat.source}">${src.code}</span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--accent-rune); margin-bottom: 0.25rem;">
+                      [Origem: ${feat.origin}] &bull; [Fonte: ${src.name}]
+                    </div>
+                    <p class="feature-desc">${feat.desc}</p>
                   </div>
-
-                  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
-                    ${spellsInCircle.map(item => {
-                      const sp = item.spell;
-                      const src = getSourceById(sp.sourceId);
-                      return `
-                        <div class="feature-item-card" style="border-left-color: var(--accent-rune); background: var(--bg-surface-elevated);">
-                          <div class="feature-title-row">
-                            <strong style="color: var(--text-main); font-size: 0.95rem;">${sp.name}</strong>
-                            <span class="badge-source" data-source="${sp.sourceId}">${src.code}</span>
-                          </div>
-
-                          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
-                            <span class="badge-origin">${item.origin}</span>
-                            <span style="font-size: 0.72rem; color: var(--text-dim);">[Fonte: ${src.name}]</span>
-                          </div>
-
-                          <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem;">
-                            <strong>Tempo:</strong> ${sp.castingTime} &bull; <strong>Alcance:</strong> ${sp.range} &bull; <strong>Duração:</strong> ${sp.duration}
-                            ${sp.concentration ? ' &bull; <strong style="color: var(--accent-amber);">[Concentração]</strong>' : ''}
-                          </div>
-
-                          <p class="feature-desc">${sp.description}</p>
-                        </div>
-                      `;
-                    }).join('')}
-                  </div>
-                </div>
-              `;
-            }).join('')}
+                `;
+              }).join('')}
+            </div>
           </div>
         </div>
       ` : ''}
+
+      <!-- ==================== SEÇÃO DE MAGIAS DA FICHA ==================== -->
+      ${(() => {
+        const allSpellsList = [
+          ...state.knownSpells.map(item => ({ ...item, spell: getSpellById(item.spellId) }))
+        ];
+        (computed.grantedSpells || []).forEach(g => {
+          if (g.spell && !allSpellsList.some(x => x.spell?.id === g.spell.id)) {
+            allSpellsList.push({
+              spellId: g.spell.id,
+              spell: g.spell,
+              origin: g.origin,
+              sourceId: g.spell.sourceId
+            });
+          }
+        });
+
+        if (allSpellsList.length === 0 && computed.spellSlotsData.casterLevel === 0) {
+          return '';
+        }
+
+        return `
+          <div class="sheet-spells-section page-break-after">
+            <h3 style="font-family: var(--font-title); font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              📖 Folha de Magias do Personagem (Pt-Br)
+            </h3>
+
+            <!-- Barra de Estatísticas Mágicas -->
+            <div class="spells-header-bar">
+              <div>
+                <span class="sheet-label-sub">ATRIBUTO DE CONJURAÇÃO:</span>
+                <div style="font-size: 1.15rem; font-weight: bold; color: var(--text-main);">${spellStat.toUpperCase()}</div>
+              </div>
+              <div>
+                <span class="sheet-label-sub">CD DE SALVAGUARDA DE MAGIA:</span>
+                <div style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">${spellSaveDc}</div>
+              </div>
+              <div>
+                <span class="sheet-label-sub">BÔNUS DE ATAQUE MÁGICO:</span>
+                <div style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">${spellAtkBonus}</div>
+              </div>
+            </div>
+
+            <!-- Tabela de Magias Agrupadas por Círculo -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              ${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(circle => {
+                const spellsInCircle = allSpellsList.filter(item => item.spell && item.spell.level === circle);
+
+                const totalSlots = circle === 0 ? 0 : (computed.spellSlotsData.slots[circle - 1] || 0);
+                const pactSlotsThisCircle = computed.spellSlotsData.pact.slotLevel === circle ? computed.spellSlotsData.pact.slots : 0;
+
+                if (spellsInCircle.length === 0 && totalSlots === 0 && pactSlotsThisCircle === 0) {
+                  return '';
+                }
+
+                const circleTitle = circle === 0 ? 'Truques (Sem Custo de Espaço)' : `${circle}º Círculo`;
+
+                return `
+                  <div class="spells-circle-group">
+                    <div class="circle-group-title">
+                      <span>${circleTitle}</span>
+
+                      ${totalSlots > 0 ? `
+                        <div class="circle-slots-tracker">
+                          <span>Espaços (${totalSlots}):</span>
+                          ${Array.from({ length: totalSlots }).map(() => '<input type="checkbox" title="Marcar espaço gasto">').join('')}
+                        </div>
+                      ` : ''}
+
+                      ${pactSlotsThisCircle > 0 ? `
+                        <div class="circle-slots-tracker" style="color: var(--accent-amber);">
+                          <span>Espaços de Pacto Bruxo (${pactSlotsThisCircle}):</span>
+                          ${Array.from({ length: pactSlotsThisCircle }).map(() => '<input type="checkbox" title="Espaço de pacto gasto">').join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+
+                    <div class="spells-cards-grid">
+                      ${spellsInCircle.map(item => {
+                        const sp = item.spell;
+                        const src = getSourceById(sp.sourceId);
+                        return `
+                          <div class="feature-item-card spell-print-card" style="border-left-color: var(--accent-rune); background: var(--bg-surface-elevated);">
+                            <div class="feature-title-row">
+                              <strong style="color: var(--text-main); font-size: 0.95rem;">${sp.name}</strong>
+                              <span class="badge-source" data-source="${sp.sourceId}">${src.code}</span>
+                            </div>
+
+                            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+                              <span class="badge-origin">${item.origin}</span>
+                              <span style="font-size: 0.72rem; color: var(--text-dim);">[Fonte: ${src.name}]</span>
+                            </div>
+
+                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+                              <strong>Tempo:</strong> ${sp.castingTime} &bull; <strong>Alcance:</strong> ${sp.range} &bull; <strong>Duração:</strong> ${sp.duration}
+                              ${sp.concentration ? ' &bull; <strong style="color: var(--accent-amber);">[Concentração]</strong>' : ''}
+                            </div>
+
+                            <p class="feature-desc">${sp.description}</p>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      })()}
     </div>
   `;
 }

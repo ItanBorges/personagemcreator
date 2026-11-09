@@ -11,6 +11,8 @@ import { FEATS, getFeatById } from '../data/feats.js';
 import { getClassById } from '../data/classes.js';
 import { getSourceById } from '../data/sources.js';
 import { SKILLS_LIST } from '../rules-engine.js';
+import { renderMagicInitiateSelectorHtml, renderSkilledFeatSelectorHtml } from './choiceComponents.js';
+import { SPELLS, getSpellById } from '../data/spells.js';
 
 const SOURCES_2014 = ['phb_2014', 'tcoe', 'xgte', 'bpg', 'mpmm', 'ftd', 'scag'];
 const SOURCES_2024 = ['phb_2024'];
@@ -24,6 +26,21 @@ export function renderIdentityView(container) {
   const currentRace = getRaceById(state.raceId) || RACES[0];
   const currentBg = getBackgroundById(state.backgroundId) || BACKGROUNDS[0];
   const firstClass = computed.firstClass || getClassById('guerreiro');
+
+  // Detecção de escolhas de raça e antecedente
+  const isHighElf = state.subraceId === 'elfo_alto_2024' || state.subraceId === 'alto_elfo_2014';
+  const wizardCantrips = isHighElf ? SPELLS.filter(s => s.classes?.includes('mago') && s.level === 0 && (state.edition === '2024' ? s.sourceId === 'phb_2024' : (s.sourceId === 'phb_2014' || s.sourceId === 'phb_2024'))) : [];
+  const selectedRacialCantrip = state.featureChoices?.race?.cantripId ? getSpellById(state.featureChoices.race.cantripId) : null;
+
+  const bgOriginFeatId = currentBg.originFeatId;
+  const bgOriginFeat = bgOriginFeatId ? getFeatById(bgOriginFeatId) : null;
+  const bgFeatChoices = state.featureChoices?.background?.originFeatChoices || {};
+
+  const isHuman2024 = state.raceId === 'humano_2024';
+  const isVariantHuman = state.raceId === 'humano_variante_2014' || state.raceId === 'linhagem_tasha' || currentRace.freeFeat || isHuman2024;
+  const racialFeatId = state.variantHumanFeatId || 'alerta';
+  const racialFeat = getFeatById(racialFeatId);
+  const racialFeatChoices = state.featureChoices?.race?.originFeatChoices || {};
 
   // Filtra opções estritamente com base na edição escolhida e livros oficiais ativos
   const availableRaces = RACES.filter(r => r.edition === state.edition && state.activeSources.includes(r.sourceId));
@@ -146,6 +163,28 @@ export function renderIdentityView(container) {
           </div>
         ` : ''}
 
+        <!-- Truque Adicional do Alto Elfo -->
+        ${isHighElf ? `
+          <div class="form-group" style="padding: 0.75rem; background: var(--bg-surface-elevated); border-left: 3px solid var(--accent-rune); border-radius: var(--radius-sm);">
+            <label class="form-label" style="color: var(--accent-rune); font-size: 0.82rem; font-weight: 700;">
+              ✨ Truque Élfico de Mago (Alto Elfo):
+            </label>
+            <select id="select-racial-cantrip" class="form-select">
+              <option value="">-- Selecione um Truque de Mago --</option>
+              ${wizardCantrips.map(c => `
+                <option value="${c.id}" ${c.id === (state.featureChoices?.race?.cantripId || '') ? 'selected' : ''}>
+                  ${c.name} (${c.nameEn})
+                </option>
+              `).join('')}
+            </select>
+            ${selectedRacialCantrip ? `
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.35;">
+                <strong style="color: var(--text-main);">${selectedRacialCantrip.name}:</strong> ${selectedRacialCantrip.description ? selectedRacialCantrip.description.substring(0, 160) + '...' : ''}
+              </p>
+            ` : ''}
+          </div>
+        ` : ''}
+
         <!-- Antecedente -->
         <div class="form-group">
           <label class="form-label" style="display: flex; justify-content: space-between;">
@@ -162,29 +201,119 @@ export function renderIdentityView(container) {
         </div>
       </div>
 
-      <!-- SELETOR DE TALENTO PARA HUMANO VARIANTE OU LINHAGEM PERSONALIZADA -->
-      ${(state.raceId === 'humano_variante_2014' || state.raceId === 'linhagem_tasha' || currentRace.freeFeat) ? `
+      <!-- TALENTO DE ORIGEM CONCEDIDO PELO ANTECEDENTE (2024 OU BIGBY) -->
+      ${(currentBg.originFeatId) ? `
+        <div style="margin-top: 1.25rem; padding: 1rem; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border-left: 4px solid var(--accent-amber);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <strong style="color: var(--accent-amber); font-size: 0.95rem;">
+              📜 Talento de Origem do Antecedente: ${currentBg.originFeatName || bgOriginFeat?.name || 'Talento'}
+            </strong>
+            <span class="badge-origin">Concedido por ${currentBg.name}</span>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            ${bgOriginFeat?.description || ''}
+          </p>
+
+          <!-- SE FOR INICIADO EM MAGIA (EX: ACÓLITO, GUIA, ERUDITO) -->
+          ${(bgOriginFeat?.choiceType === 'magic_initiate' || currentBg.originFeatId.startsWith('iniciado_magia')) ? `
+            ${renderMagicInitiateSelectorHtml({
+              featKey: 'background_origin',
+              fixedClass: bgOriginFeat?.spellSourceClass || (currentBg.originFeatId === 'iniciado_magia_clerigo' ? 'clerigo' : (currentBg.originFeatId === 'iniciado_magia_druida' ? 'druida' : 'mago')),
+              cantrip1: bgFeatChoices.cantrips?.[0] || '',
+              cantrip2: bgFeatChoices.cantrips?.[1] || '',
+              spell1: bgFeatChoices.spell1 || '',
+              edition: state.edition
+            })}
+          ` : ''}
+
+          <!-- SE FOR HÁBIL (EX: CHARLATÃO) -->
+          ${(currentBg.originFeatId === 'habil') ? `
+            ${renderSkilledFeatSelectorHtml(bgFeatChoices.skills || [], bgSkillIds, 'background_origin')}
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <!-- SELETOR DE TALENTO PARA HUMANO 2024, HUMANO VARIANTE OU LINHAGEM PERSONALIZADA -->
+      ${(isVariantHuman) ? `
         <div style="margin-top: 1.25rem; padding: 1rem; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
             <strong style="color: var(--primary); font-size: 0.95rem;">
               ⭐ Talento Bônus de Nível 1 (${currentRace.name}):
             </strong>
-            <span class="badge-origin">Talento Inicial Gratuito</span>
+            <span class="badge-origin">${isHuman2024 ? 'Talento Hábil (Origem 2024)' : 'Talento Inicial Gratuito'}</span>
           </div>
           <div class="form-group">
             <select id="select-variant-human-feat" class="form-select">
               ${availableFeats.map(f => {
                 const src = getSourceById(f.sourceId);
                 return `
-                  <option value="${f.id}" ${state.variantHumanFeatId === f.id ? 'selected' : ''}>
+                  <option value="${f.id}" ${racialFeatId === f.id ? 'selected' : ''}>
                     ${f.name} [${src.code}] ${f.category === 'origem' ? '(Origem)' : ''}
                   </option>
                 `;
               }).join('')}
             </select>
             <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.35rem;">
-              ${getFeatById(state.variantHumanFeatId)?.description || ''}
+              ${racialFeat?.description || ''}
             </p>
+          </div>
+
+          <!-- SE O TALENTO RACIAL FOR INICIADO EM MAGIA -->
+          ${(racialFeat?.choiceType === 'magic_initiate' || (racialFeatId || '').startsWith('iniciado_magia')) ? `
+            ${renderMagicInitiateSelectorHtml({
+              featKey: 'race_origin',
+              fixedClass: racialFeat?.spellSourceClass || null,
+              selectedClass: racialFeatChoices.class || racialFeat?.spellSourceClass || 'mago',
+              cantrip1: racialFeatChoices.cantrips?.[0] || '',
+              cantrip2: racialFeatChoices.cantrips?.[1] || '',
+              spell1: racialFeatChoices.spell1 || '',
+              edition: state.edition
+            })}
+          ` : ''}
+
+          <!-- SE O TALENTO RACIAL FOR HÁBIL -->
+          ${(racialFeatId === 'habil') ? `
+            ${renderSkilledFeatSelectorHtml(racialFeatChoices.skills || [], bgSkillIds, 'race_origin')}
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <!-- PERÍCIA EXTRA: VERSÁTIL (HUMANO 2024) OU VERSATILIDADE EM PERÍCIAS (MEIO-ELFO 2014) -->
+      ${(state.raceId === 'humano_2024' || state.raceId === 'meio_elfo_2014') ? `
+        <div style="margin-top: 1.25rem; padding: 1rem; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border-left: 4px solid var(--accent-emerald);">
+          <strong style="color: var(--accent-emerald); font-size: 0.95rem;">
+            🎯 ${state.raceId === 'humano_2024' ? 'Perícia Versátil do Humano (2024)' : 'Versatilidade em Perícias do Meio-Elfo (+2 perícias)'}:
+          </strong>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem; margin-bottom: 0.6rem;">
+            Escolha ${state.raceId === 'humano_2024' ? '1 perícia' : '2 perícias'} para receber proficiência.
+          </p>
+
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <div>
+              <span style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); display: block;">Perícia Bônus #1:</span>
+              <select id="select-racial-skill-1" class="form-select" style="min-width: 170px;">
+                <option value="">-- Selecione uma Perícia --</option>
+                ${SKILLS_LIST.map(sk => `
+                  <option value="${sk.id}" ${(state.featureChoices?.race?.skills || [])[0] === sk.id ? 'selected' : ''} ${bgSkillIds.includes(sk.id) ? 'disabled' : ''}>
+                    ${sk.name} ${bgSkillIds.includes(sk.id) ? '(Já do Antecedente)' : ''}
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+
+            ${state.raceId === 'meio_elfo_2014' ? `
+              <div>
+                <span style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); display: block;">Perícia Bônus #2:</span>
+                <select id="select-racial-skill-2" class="form-select" style="min-width: 170px;">
+                  <option value="">-- Selecione uma Perícia --</option>
+                  ${SKILLS_LIST.map(sk => `
+                    <option value="${sk.id}" ${(state.featureChoices?.race?.skills || [])[1] === sk.id ? 'selected' : ''} ${bgSkillIds.includes(sk.id) ? 'disabled' : ''}>
+                      ${sk.name} ${bgSkillIds.includes(sk.id) ? '(Já do Antecedente)' : ''}
+                    </option>
+                  `).join('')}
+                </select>
+              </div>
+            ` : ''}
           </div>
         </div>
       ` : ''}
@@ -483,6 +612,109 @@ function setupIdentityEvents(container) {
   // Talento de Humano Variante
   container.querySelector('#select-variant-human-feat')?.addEventListener('change', (e) => {
     store.setState({ variantHumanFeatId: e.target.value });
+  });
+
+  // Truque Adicional de Alto Elfo
+  container.querySelector('#select-racial-cantrip')?.addEventListener('change', (e) => {
+    store.setFeatureChoice('race', 'cantripId', e.target.value);
+  });
+
+  // Perícias Bônus de Raça (Humano 2024 / Meio-Elfo)
+  container.querySelector('#select-racial-skill-1')?.addEventListener('change', (e) => {
+    const skills = [...(store.getState().featureChoices?.race?.skills || [])];
+    skills[0] = e.target.value;
+    store.setFeatureChoice('race', 'skills', skills.filter(Boolean));
+  });
+
+  container.querySelector('#select-racial-skill-2')?.addEventListener('change', (e) => {
+    const skills = [...(store.getState().featureChoices?.race?.skills || [])];
+    skills[1] = e.target.value;
+    store.setFeatureChoice('race', 'skills', skills.filter(Boolean));
+  });
+
+  // Iniciado em Magia: Mudança de Classe Conjuradora
+  container.querySelectorAll('.select-magic-initiate-class').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      if (featKey === 'background_origin') {
+        store.setFeatureChoice('background', 'originFeatChoices', { class: e.target.value, cantrips: [], spell1: '' });
+      } else if (featKey === 'race_origin') {
+        store.setFeatureChoice('race', 'originFeatChoices', { class: e.target.value, cantrips: [], spell1: '' });
+      }
+    });
+  });
+
+  // Iniciado em Magia: 1º Truque
+  container.querySelectorAll('.select-magic-initiate-cantrip1').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      const val = e.target.value;
+      if (featKey === 'background_origin') {
+        const cur = { ...(store.getState().featureChoices?.background?.originFeatChoices || {}) };
+        const cantrips = [...(cur.cantrips || [])];
+        cantrips[0] = val;
+        store.setFeatureChoice('background', 'originFeatChoices', { ...cur, cantrips });
+      } else if (featKey === 'race_origin') {
+        const cur = { ...(store.getState().featureChoices?.race?.originFeatChoices || {}) };
+        const cantrips = [...(cur.cantrips || [])];
+        cantrips[0] = val;
+        store.setFeatureChoice('race', 'originFeatChoices', { ...cur, cantrips });
+      }
+    });
+  });
+
+  // Iniciado em Magia: 2º Truque
+  container.querySelectorAll('.select-magic-initiate-cantrip2').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      const val = e.target.value;
+      if (featKey === 'background_origin') {
+        const cur = { ...(store.getState().featureChoices?.background?.originFeatChoices || {}) };
+        const cantrips = [...(cur.cantrips || [])];
+        cantrips[1] = val;
+        store.setFeatureChoice('background', 'originFeatChoices', { ...cur, cantrips });
+      } else if (featKey === 'race_origin') {
+        const cur = { ...(store.getState().featureChoices?.race?.originFeatChoices || {}) };
+        const cantrips = [...(cur.cantrips || [])];
+        cantrips[1] = val;
+        store.setFeatureChoice('race', 'originFeatChoices', { ...cur, cantrips });
+      }
+    });
+  });
+
+  // Iniciado em Magia: Magia de 1º Círculo
+  container.querySelectorAll('.select-magic-initiate-spell1').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const featKey = sel.getAttribute('data-feat-key');
+      const val = e.target.value;
+      if (featKey === 'background_origin') {
+        const cur = { ...(store.getState().featureChoices?.background?.originFeatChoices || {}) };
+        store.setFeatureChoice('background', 'originFeatChoices', { ...cur, spell1: val });
+      } else if (featKey === 'race_origin') {
+        const cur = { ...(store.getState().featureChoices?.race?.originFeatChoices || {}) };
+        store.setFeatureChoice('race', 'originFeatChoices', { ...cur, spell1: val });
+      }
+    });
+  });
+
+  // Talento Hábil (Skilled): Perícias
+  container.querySelectorAll('.select-skilled-skill').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const ctx = sel.getAttribute('data-context-key');
+      const slotIdx = parseInt(sel.getAttribute('data-slot-index'), 10) || 0;
+      const val = e.target.value;
+      if (ctx === 'background_origin') {
+        const cur = { ...(store.getState().featureChoices?.background?.originFeatChoices || {}) };
+        const skills = [...(cur.skills || [])];
+        skills[slotIdx] = val;
+        store.setFeatureChoice('background', 'originFeatChoices', { ...cur, skills: skills.filter(Boolean) });
+      } else if (ctx === 'race_origin') {
+        const cur = { ...(store.getState().featureChoices?.race?.originFeatChoices || {}) };
+        const skills = [...(cur.skills || [])];
+        skills[slotIdx] = val;
+        store.setFeatureChoice('race', 'originFeatChoices', { ...cur, skills: skills.filter(Boolean) });
+      }
+    });
   });
 
   // Regra de Tasha para Atributos

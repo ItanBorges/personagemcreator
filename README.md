@@ -71,22 +71,71 @@ Seleção dinâmica de raças com suporte a seletores contextuais de sub-raças 
 
 ---
 
-### 7. 🔮 Grimório e Catálogo de Magias
-- Catálogo de Truques até o 9º Círculo (*Desejo, Parar o Tempo, Cura Completa, Meteoro, Desintegrar, Muralha de Força, etc.*).
-- Filtros instantâneos por círculo, lista de classe e barra de busca textual em tempo real.
-- Identificação da **Origem da Magia** (Classe, Subclasse, Talento ou Espécie) e **Livro Fonte**.
+### 7. 🔮 Grimório e Catálogo Expandido de Magias
+- **Catálogo Oficial Completo com mais de 515 Magias**: Cobrindo de Truques até o 9º Círculo de todas as fontes oficiais (PHB 2014, PHB 2024, *Caldeirão de Tasha*, *Guia de Xanathar*, *Costa da Espada* e *Tesouro de Fizban*).
+- **Truques e Magias Marciais e de Combate**: *Lâmina Estrondosa (Booming Blade)*, *Lâmina de Chamas Verdes (Green-Flame Blade)*, *Chicote Relampejante*, *Rajada de Espadas*, *Estilhaço Mental*, *Dobrar os Mortos*, *Selvageria Primitiva*, *Lâmina Sombria*, *Passo Zéfiro*, *Golpe do Vento de Aço*, *Estática Sináptica*, *Raio do Caos*, *Catapulta*, *Faca de Gelo*, etc.
+- **Série Completa de Convocação de Tasha**: *Convocar Besta*, *Convocar Feérico*, *Convocar Sombra*, *Convocar Morto-Vivo*, *Convocar Aberração*, *Convocar Construto*, *Convocar Elemental*, *Convocar Celestial*, *Convocar Ínfero* e *Convocar Espírito Dracônico*.
+- **Filtros e Busca em Tempo Real**: Filtros instantâneos por círculo, lista de classe, magias no repertório e barra de busca textual sem perda de foco.
+- Identificação da **Origem da Magia** (Classe, Subclasse, Talento ou Espécie) e **Livro Fonte** com selos coloridos.
 - Cálculo automático de **CD de Magia**, **Bônus de Ataque Mágico** e **Espaços de Magia (Slots)** multiclasse e de pacto de Bruxo.
 
 ---
 
-### 8. 🛡️ Equipamentos, CA e Inventário
-- Seleção de armas simples e marciais com propriedades (Acuidade, Versátil, Alcance, etc.) e cálculo de bônus de acerto e dano.
-- Seleção de armaduras (Leve, Média, Pesada) e escudo, integradas ao cálculo de CA com regras de Destreza e Defesa Sem Armadura (Bárbaro e Monge).
-- Mochila com adição, edição e remoção dinâmica de itens.
+### 8. 🛡️ Equipamentos, CA, Venda Inicial & Loja do Mercador
+- **Valores Oficiais de Mercado em Peças de Ouro (PO)**: Todas as 14 armaduras, 37 armas, 7 pacotes de equipamentos e 39 itens de aventura/ferramentas/poções possuem preços de mercado oficiais conforme o *Livro do Jogador*.
+- **Opção de Venda de Equipamento Inicial (Regra Oficial D&D 5e)**:
+  - Botão de um clique para vender todo o equipamento inicial não utilizado por **50% do valor de mercado** (conforme *PHB p. 144: "Armas, armaduras e equipamentos usados são vendidos por metade do seu custo"*), creditando ouro líquido instantaneamente na carteira do personagem.
+  - Venda individual de qualquer item da mochila por metade do valor oficial.
+- **Carteira de Moedas Interativa**: Controle em tempo real de **Peças de Ouro (PO)**, **Peças de Prata (PP)** e **Peças de Cobre (PC)** com atalhos de incremento e sincronização na ficha.
+- **Catálogo Completo & Loja Integrada**:
+  - Abas categorizadas: *Armaduras & Escudos*, *Armas Simples & Marciais*, *Itens de Aventura, Poções & Kits*, e *Pacotes de Aventureiro*.
+  - Compra e adição automática à mochila com dedução de moedas.
+  - Botões para *Equipar Armadura* e *Empunhar Armas* com atualização instantânea da Classe de Armadura (CA).
 
 ---
 
-### 9. 📜 Ficha Oficial em Português (Pt-Br) & Exportação
+### 9. 🏹 Opção de Regras do Patrulheiro: Livro do Jogador (2014) vs Revisado de Tasha (TCoE)
+Ao escolher ou evoluir níveis na classe **Patrulheiro (Ranger)**, o construtor permite alternar entre:
+- **📖 Livro do Jogador (PHB 2014)**: As habilidades clássicas originais (*Inimigo Favorito*, *Explorador Natural* em terrenos específicos, *Consciência Primitiva*, *Ocultar-se em Plena Vista*, *Desaparecer* e *Matador de Inimigos*).
+- **🔮 Revisado: Caldeirão de Tasha (TCoE)**: As opções revisadas e aprimoradas (*Inimigo Favorecido* com marca sem gastar ação para +1d4 a +1d8 de dano, *Explorador Hábil* com Especialização em perícia, velocidade de natação/escalada e cura de PV/exaustão, *Percepção Primitiva* com magias gratuitas e *Véu da Natureza* com invisibilidade como ação bônus).
+A escolha selecionada ajusta dinamicamente a exibição na ficha oficial e os recursos ativados!
+
+---
+
+### 10. 🎯 Subclasses Oficiais Expandidas (120 Subclasses)
+Catálogo oficial expandido para **120 subclasses completas** de todos os livros suportados:
+- **Bárbaro (10)**: Caminho do Gigante (BPG), Totêmico/Coração Selvagem, Berserker, Zelo Primitivo, Besta, Guardião Ancestral, Arauto da Tempestade, Magia Selvagem, Combatente da Fúria e Árvore do Mundo.
+- **Bardo (9)**: Conhecimento, Espadas, Eloquência, Bravura/Valor, Glamour, Criação, Sussurros, Espíritos e Dança.
+- **Bruxo (9)**: Hexblade, Corruptor, Gênio, Arquifada, Grande Antigo, Celestial, Profundezas, Morto-Vivo e Imortal.
+- **Clérigo (14)**: Vida, Luz, Guerra, Tempestade, Crepúsculo, Paz, Sepultura, Forja, Enganação/Trapaça, Conhecimento, Natureza, Arcano, Ordem e Morte.
+- **Druida (8)**: Lua, Terra, Estrelas, Esporos, Fogo Selvagem, Sonhos, Pastor e Mar.
+- **Feiticeiro (7)**: Dracônico, Magia Selvagem, Alma Divina, Mente Aberrante, Mecanismo Cósmico, Sombras e Tempestade.
+- **Guerreiro (10)**: Campeão, Mestre da Batalha, Cavaleiro Arcano, Cavaleiro do Eco, Cavaleiro Rúnico, Samurai, Guerreiro Psíquico, Arqueiro Arcano, Cavaleiro/Cavalier e Dragão Púrpura/Banneret.
+- **Ladino (9)**: Ladrão, Assassino, Trapaceiro Arcano, Espadachim, Fantasma, Lâmina da Alma, Inquisitivo, Mentor e Batedor.
+- **Mago (13)**: Evocação, Abjuração, Adivinhação, Lâmina-Canto, Escribas, Conjuração, Encantamento, Ilusão, Necromancia, Transmutação, Magia de Guerra, Cronurgia e Graviturgia.
+- **Monge (10)**: Palma Aberta, Sombras, Misericórdia, Kensei, Dragão Ascendente, Eu Astral, Mestre Bêbado, Quatro Elementos, Alma do Sol e Morte Longa.
+- **Paladino (9)**: Devoção, Vingança, Anciões, Conquista, Glória, Redenção, Sentinelas, Coroa e Quebrador de Juramento.
+- **Patrulheiro (8)**: Gloom Stalker, Caçador, Andarilho Feérico, Mestre das Bestas, Guardião dos Enxames, Andarilho do Horizonte, Matador de Monstros e Guardião dos Dragões.
+- **Artífice (4)**: Armeiro, Artilheiro, Ferreiro de Batalha e Alquimista.
+
+---
+
+### 11. 🎯 Sistema de Escolhas Dinâmicas & Catálogo Unificado
+- **Subclasses com Escolhas Mecânicas**:
+  - **Mestre da Batalha (Guerreiro)**: Catálogo com as 19 Manobras oficiais de combate com nome, tipo de ação e descrição detalhada; seleção sem repetição com contagem exata (3 no nível 3, 5 no nível 7, 7 no nível 10, 9 no nível 15).
+  - **Guerreiro Totêmico / Wild Heart (Bárbaro)**: Escolha do espírito animal (Urso, Águia, Lobo, Alce, Tigre) nos marcos totêmicos.
+  - **Caçador (Patrulheiro)**: Escolha de técnicas da Presa do Caçador (Assassino de Colossos, Matador de Gigantes, Quebrador de Hordas).
+- **Talentos com Opções Interativas**:
+  - **Iniciado em Magia (Magic Initiate)**: Escolha da classe conjuradora (Mago, Clérigo, Druida, Bardo, Bruxo, Feiticeiro), 2 truques exclusivos sem repetição e 1 magia de 1º círculo com dados mecânicos completos.
+  - **Hábil (Skilled)**: Escolha de 3 perícias ou ferramentas sem duplicar proficiências existentes.
+  - **Iniciado em Combate & Adepto de Metamagia**: Escolha de Estilo de Luta e 2 opções de Metamagia.
+  - **Resiliente (Resilient)**: Escolha de atributo para receber +1 e proficiência na Salvaguarda.
+- **Raças e Antecedentes Dinâmicos**:
+  - **Alto Elfo**: Escolha do Truque Élfico adicional da lista de Mago.
+  - **Humano 2024 / Humano Variante / Meio-Elfo**: Escolhas de perícia versátil e talentos bônus de nível 1 com suas sub-escolhas.
+  - **Antecedentes 2024 (Acólito, Guia, Charlatão, etc.)**: As magias e perícias do talento de origem aparecem dinamicamente no painel de Identidade.
+
+### 12. 📜 Ficha Oficial em Português (Pt-Br) & Exportação
 - Layout autêntico de 3 colunas no padrão oficial de D&D 5e.
 - Otimizado para **Impressão em PDF** (`Ctrl+P` ou botão de impressão) com remoção automática de elementos de interface para folhas limpas.
 - **Backup JSON**: Botões para **Salvar Ficha (Download JSON)** e **Carregar Ficha (.json)**.
@@ -94,12 +143,15 @@ Seleção dinâmica de raças com suporte a seletores contextuais de sub-raças 
 
 ---
 
-## 🚀 Como Executar Localmente
+## 🚀 Como Executar
 
-### Opção 1: Arquivo em Lote (Windows)
-Dê um duplo clique no arquivo [`iniciar.bat`](file:///d:/personagemCreator/iniciar.bat). O servidor local será aberto automaticamente na porta 8080 e carregará o navegador.
+### Opção 1: Abertura Direta (Dois Cliques em `index.html`)
+Graças ao bundle consolidado em `js/bundle.js`, você pode simplesmente dar **dois cliques em `index.html`** no seu explorador de arquivos (`file:///...`) e a aplicação funcionará imediatamente sem nenhuma restrição ou erro de CORS!
 
-### Opção 2: Linha de Comando (PowerShell / Terminal)
+### Opção 2: Arquivo em Lote (Windows)
+Dê um duplo clique no arquivo [`iniciar.bat`](file:///d:/personagemCreator/iniciar.bat). O servidor local será aberto automaticamente na porta 8080 e carregará o navegador em `http://localhost:8080`.
+
+### Opção 3: Linha de Comando (PowerShell / Terminal)
 Na pasta raiz do projeto, execute:
 ```powershell
 python -m http.server 8080
@@ -130,6 +182,7 @@ personagemCreator/
     │   ├── sources.js      # Livros fontes oficiais (PHB'24, PHB'14, TCoE, BPG, etc.)
     │   ├── classes.js      # 13 classes com PV, dados, perícias elegíveis e marcos
     │   ├── subclasses.js   # Arquétipos de todas as classes incluindo BPG e TCoE
+    │   ├── optionsCatalog.js # Catálogo unificado de manobras, estilos, metamagias, invocações
     │   ├── races.js        # Raças 2014/2024 e árvores de sub-raças completas
     │   ├── backgrounds.js  # Antecedentes 2014, 2024 e BPG com talentos de origem
     │   ├── feats.js        # Talentos de origem, gerais e de gigantes (Bigby)
@@ -137,9 +190,10 @@ personagemCreator/
     │   └── equipment.js    # Armas, armaduras, escudos e pacotes de equipamentos
     └── views/
         ├── headerView.js   # Topo, controle de livros, tema claro/escuro e JSON I/O
+        ├── choiceComponents.js # Componentes reutilizáveis de seleção sem duplicação
         ├── identityView.js # Raças, sub-raças, perícias de classe, especialização e Tasha
         ├── attributesView.js # Compra de pontos e inserção manual de atributos
-        ├── levelUpView.js  # Nível a nível, multiclasse, PV e ASI (+2 ou +1/+1 Tasha)
+        ├── levelUpView.js  # Nível a nível, multiclasse, PV, manobras e ASI
         ├── spellsView.js   # Grimório e seleção com busca em tempo real sem perda de foco
         ├── equipmentView.js # Armaduras, armas empunhadas e mochila
         └── sheetView.js    # Ficha de personagem de 3 colunas formatada em Pt-Br

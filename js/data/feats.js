@@ -6,12 +6,25 @@
 export const FEATS = [
   // ==================== TALENTOS DE ORIGEM (Nível 1 - 2024 ou Humano Variante 2014) ====================
   {
+    id: 'iniciado_magia',
+    name: 'Iniciado em Magia (Geral)',
+    nameEn: 'Magic Initiate',
+    category: 'origem',
+    sourceId: 'phb_2024',
+    grantsSpells: true,
+    choiceType: 'magic_initiate',
+    cantripsCount: 2,
+    spellsCount1: 1,
+    description: 'Escolha uma classe conjuradora (Mago, Clérigo, Druida, Bardo, Bruxo ou Feiticeiro), 2 truques e 1 magia de 1º círculo dessa classe.'
+  },
+  {
     id: 'iniciado_magia_mago',
     name: 'Iniciado em Magia: Mago',
     nameEn: 'Magic Initiate: Wizard',
     category: 'origem',
     sourceId: 'phb_2024',
     grantsSpells: true,
+    choiceType: 'magic_initiate',
     spellSourceClass: 'mago',
     cantripsCount: 2,
     spellsCount1: 1,
@@ -25,6 +38,7 @@ export const FEATS = [
     category: 'origem',
     sourceId: 'phb_2024',
     grantsSpells: true,
+    choiceType: 'magic_initiate',
     spellSourceClass: 'clerigo',
     cantripsCount: 2,
     spellsCount1: 1,
@@ -38,6 +52,7 @@ export const FEATS = [
     category: 'origem',
     sourceId: 'phb_2024',
     grantsSpells: true,
+    choiceType: 'magic_initiate',
     spellSourceClass: 'druida',
     cantripsCount: 2,
     spellsCount1: 1,
@@ -75,6 +90,8 @@ export const FEATS = [
     nameEn: 'Skilled',
     category: 'origem',
     sourceId: 'phb_2024',
+    choiceType: 'skills_or_tools',
+    count: 3,
     description: 'Você ganha proficiência em qualquer combinação de 3 perícias ou ferramentas à sua escolha.'
   },
   {
@@ -191,6 +208,8 @@ export const FEATS = [
     nameEn: 'Metamagic Adept',
     category: 'geral',
     sourceId: 'tcoe',
+    choiceType: 'metamagic',
+    count: 2,
     reqDesc: 'Capacidade de conjurar magia',
     description: 'Você aprende duas opções de Metamagia da classe Feiticeiro e ganha 2 Pontos de Feitiçaria para alimentá-las (recarregam em descanso longo).'
   },
@@ -200,6 +219,8 @@ export const FEATS = [
     nameEn: 'Eldritch Adept',
     category: 'geral',
     sourceId: 'tcoe',
+    choiceType: 'invocation',
+    count: 1,
     reqDesc: 'Capacidade de conjurar magia ou característica Magia de Pacto',
     description: 'Você aprende uma Invocação Sobrenatural da classe Bruxo à sua escolha.'
   },
@@ -209,6 +230,8 @@ export const FEATS = [
     nameEn: 'Fighting Initiate',
     category: 'geral',
     sourceId: 'tcoe',
+    choiceType: 'fighting_style',
+    count: 1,
     reqDesc: 'Proficiência com ao menos uma arma marcial',
     description: 'Você aprende um Estilo de Luta da classe Guerreiro à sua escolha (Arquearia, Defesa, Duelo, etc.).'
   },
@@ -236,6 +259,7 @@ export const FEATS = [
     nameEn: 'Resilient',
     category: 'geral',
     sourceId: 'phb_2024',
+    choiceType: 'resilient',
     description: 'Escolha um atributo: aumente seu valor em +1 e ganhe proficiência nas salvaguardas desse atributo (ex: CON para concentração, ou SAB contra encantos).'
   },
   {
